@@ -58,14 +58,14 @@
 ### 🧩 使用方法
 ```bash
 # 克隆项目
-git clone https://github.com/alanni/turacos.git
+git clone https://github.com/alanni-tom/Turacos.git
 
 # 进入目录并编译
 cd turacos
 mvn clean package
 
 # 运行工具
-java -jar target/turacos-1.0.0.jar
+java -jar target/turacos-1.4.1.jar
 ```
 
 ### 🚀 项目预览
@@ -79,7 +79,7 @@ java -jar target/turacos-1.0.0.jar
 👥 开发团队
 🏅 核心贡献者
 
-<table> <tr> <td align="center"> <a href="https://github.com/alanni-tome"> <img src="https://avatars.githubusercontent.com/alanni-tom" width="100px;" alt="alanni"/> <br/><sub><b>alanni</b></sub> </a><br/> <span>项目开发</span> </td> <td align="center"> <a href="https://github.com/A-HakunaMatata"> <img src="https://avatars.githubusercontent.com/A-HakunaMatata" width="100px;" alt="HAKUNA MATATA"/> <br/><sub><b>HAKUNA MATATA</b></sub> </a><br/> <span>UI 设计</span> </td> </tr> </table>
+<table> <tr> <td align="center"> <a href="https://github.com/alanni-tom"> <img src="https://avatars.githubusercontent.com/alanni-tom" width="100px;" alt="alanni"/> <br/><sub><b>alanni</b></sub> </a><br/> <span>项目开发</span> </td> <td align="center"> <a href="https://github.com/A-HakunaMatata"> <img src="https://avatars.githubusercontent.com/A-HakunaMatata" width="100px;" alt="HAKUNA MATATA"/> <br/><sub><b>HAKUNA MATATA</b></sub> </a><br/> <span>UI 设计</span> </td> </tr> </table>
 
 🙏 特别鸣谢
 
