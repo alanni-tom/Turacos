@@ -19,52 +19,45 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="361.0"
-            prefWidth="592.0" style="-fx-background-color: #cde5ea;" xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.init">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="361.0" prefWidth="592.0" style="-fx-background-color: #cde5ea;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.init">
     <left>
         <VBox prefHeight="361.0" prefWidth="177.0" style="-fx-background-color: #cde5ea;" BorderPane.alignment="CENTER">
             <children>
-                <ListView fx:id="savedConfigsList" prefHeight="362.0" prefWidth="177.0"
-                          style=" -fx-background-color: #e2dbb4; -fx-control-inner-background: #e2dbb4; -fx-control-inner-background-alt: #e2dbb4; -fx-border-color: #D2B48C;         -fx-border-width: 1px;         -fx-border-radius: 5px;         -fx-background-radius: 5px;         -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 4, 0, 0, 2);     ">
+                <ListView fx:id="savedConfigsList" prefHeight="362.0" prefWidth="177.0" style=" -fx-background-color: #e2dbb4; -fx-control-inner-background: #e2dbb4; -fx-control-inner-background-alt: #e2dbb4; -fx-border-color: #D2B48C;         -fx-border-width: 1px;         -fx-border-radius: 5px;         -fx-background-radius: 5px;         -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 4, 0, 0, 2);     ">
                     <cursor>
-                        <Cursor fx:constant="HAND"/>
+                        <Cursor fx:constant="HAND" />
                     </cursor>
                 </ListView>
             </children>
         </VBox>
     </left>
     <center>
-        <VBox alignment="CENTER" maxWidth="500" prefHeight="200.0" prefWidth="100.0" spacing="20"
-              BorderPane.alignment="CENTER">
+        <VBox alignment="CENTER" maxWidth="500" prefHeight="200.0" prefWidth="100.0" spacing="20" BorderPane.alignment="CENTER">
             <stylesheets>
-                <URL value="@/style/main.css"/>
+                <URL value="@/style/main.css" />
             </stylesheets>
             <padding>
-                <Insets bottom="20" left="20" right="20" top="20"/>
+                <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
             <children>
                 <GridPane alignment="CENTER" hgap="15" prefHeight="53.0" prefWidth="400.0" vgap="15">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="54.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="58.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="356.0" minWidth="10.0" prefWidth="256.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="54.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="58.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="356.0" minWidth="10.0" prefWidth="256.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints maxHeight="95.0" minHeight="10.0" prefHeight="58.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
+                        <RowConstraints maxHeight="95.0" minHeight="10.0" prefHeight="58.0" valignment="CENTER" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
-                        <ImageView fitHeight="64.0" fitWidth="64.0" nodeOrientation="INHERIT" pickOnBounds="true"
-                                   preserveRatio="true" GridPane.columnIndex="1">
+                        <ImageView fitHeight="64.0" fitWidth="64.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
                             <image>
-                                <Image url="@../images/add.png"/>
+                                <Image url="@../images/add.png" />
                             </image>
                         </ImageView>
-                        <Label contentDisplay="CENTER" prefHeight="53.0" prefWidth="260.0" text="新建数据库连接"
-                               textFill="#5e5e5e" GridPane.columnIndex="2">
+                        <Label contentDisplay="CENTER" prefHeight="53.0" prefWidth="260.0" text="新建数据库连接" textFill="#5e5e5e" GridPane.columnIndex="2">
                             <font>
-                                <Font name="IBM Plex Mono Text" size="28.0"/>
+                                <Font name="IBM Plex Mono Text" size="28.0" />
                             </font>
                         </Label>
                     </children>
@@ -72,101 +65,99 @@
 
                 <GridPane alignment="CENTER" hgap="15" prefHeight="197.0" prefWidth="375.0" vgap="15">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="150.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="150.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints maxHeight="48.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
-                        <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
-                        <RowConstraints maxHeight="52.0" minHeight="10.0" prefHeight="34.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
-                        <RowConstraints maxHeight="38.0" minHeight="10.0" prefHeight="30.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
-                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
-                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER"
-                                        vgrow="SOMETIMES"/>
+                        <RowConstraints maxHeight="48.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="52.0" minHeight="10.0" prefHeight="34.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="38.0" minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="15">
                             <Label prefHeight="20.0" prefWidth="120.0" text="选择数据库类型">
                                 <font>
-                                    <Font size="14.0"/>
+                                    <Font size="14.0" />
                                 </font>
                             </Label>
                             <ComboBox fx:id="ComboBox" onAction="#onComboBoxChanged" prefWidth="180.0">
                                 <cursor>
-                                    <Cursor fx:constant="HAND"/>
+                                    <Cursor fx:constant="HAND" />
                                 </cursor>
                             </ComboBox>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="1">
                             <Label prefHeight="20.0" prefWidth="120.0" text="数据库地址">
                                 <font>
-                                    <Font size="14.0"/>
+                                    <Font size="14.0" />
                                 </font>
                             </Label>
-                            <TextField fx:id="hostTextField" prefHeight="25.0" prefWidth="180.0"/>
+                            <TextField fx:id="hostTextField" prefHeight="25.0" prefWidth="180.0" />
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="2">
                             <Label prefHeight="20.0" prefWidth="120.0" text="连接用户名">
                                 <font>
-                                    <Font size="14.0"/>
+                                    <Font size="14.0" />
                                 </font>
                             </Label>
-                            <TextField fx:id="usernameTextField" prefHeight="25.0" prefWidth="180.0"/>
+                            <TextField fx:id="usernameTextField" prefHeight="25.0" prefWidth="180.0" />
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="3">
                             <Label prefHeight="20.0" prefWidth="120.0" text="连接密码">
                                 <font>
-                                    <Font size="14.0"/>
+                                    <Font size="14.0" />
                                 </font>
                             </Label>
-                            <PasswordField fx:id="passwordTextField" prefHeight="23.0" prefWidth="180.0"/>
+                            <TextField fx:id="passwordPlainTextField" managed="false" maxHeight="24.0" minHeight="24.0" prefHeight="24.0" prefWidth="150.0" visible="false" />
+                            <PasswordField fx:id="passwordTextField" maxHeight="24.0" minHeight="24.0" prefHeight="24.0" prefWidth="150.0" />
+                            <ImageView fx:id="togglePasswordImage" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#onTogglePasswordVisibility" pickOnBounds="true" preserveRatio="true">
+                                <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                </cursor>
+                            </ImageView>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="4">
                             <Label prefHeight="20.0" prefWidth="120.0" text="端口">
                                 <font>
-                                    <Font size="14.0"/>
+                                    <Font size="14.0" />
                                 </font>
                             </Label>
-                            <TextField fx:id="portTextField" prefHeight="25.0" prefWidth="180.0"/>
+                            <TextField fx:id="portTextField" prefHeight="25.0" prefWidth="180.0" />
                         </HBox>
                         <HBox prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="5">
                             <children>
                                 <Label prefHeight="20.0" prefWidth="134.0" text="数据库">
                                     <font>
-                                        <Font size="14.0"/>
+                                        <Font size="14.0" />
                                     </font>
                                 </Label>
-                                <TextField fx:id="databaseTextField" prefHeight="23.0" prefWidth="179.0"/>
+                                <TextField fx:id="databaseTextField" prefHeight="23.0" prefWidth="179.0" />
                             </children>
                         </HBox>
                     </children>
                 </GridPane>
                 <GridPane prefHeight="30.0" prefWidth="348.0">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="49.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="136.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="41.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="119.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="47.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="49.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="136.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="41.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="119.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="47.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                     <children>
-                        <Button mnemonicParsing="false" onAction="#onTestconnection" prefHeight="30.0" prefWidth="114.0"
-                                text="测试连接" GridPane.columnIndex="1">
+                        <Button mnemonicParsing="false" onAction="#onTestconnection" prefHeight="30.0" prefWidth="114.0" text="测试连接" GridPane.columnIndex="1">
                             <cursor>
-                                <Cursor fx:constant="HAND"/>
+                                <Cursor fx:constant="HAND" />
                             </cursor>
                         </Button>
-                        <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onComboBoxChanged"
-                                prefHeight="37.0" prefWidth="118.0" text="保存并打开" GridPane.columnIndex="3">
+                        <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onComboBoxChanged" prefHeight="37.0" prefWidth="118.0" text="保存并打开" GridPane.columnIndex="3">
                             <cursor>
-                                <Cursor fx:constant="HAND"/>
+                                <Cursor fx:constant="HAND" />
                             </cursor>
                         </Button>
                     </children>

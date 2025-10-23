@@ -36,11 +36,18 @@ public class init {
     @FXML
     private TextField passwordTextField;
     @FXML
+    private TextField passwordPlainTextField;
+    @FXML
+    private javafx.scene.image.ImageView togglePasswordImage;
+    @FXML
     private TextField databaseTextField;
     @FXML
     private ListView<DatabaseConfig> savedConfigsList;
 
     private DatabaseConfigDAO dao = new DatabaseConfigDAO();
+    private final javafx.beans.property.BooleanProperty showPassword = new javafx.beans.property.SimpleBooleanProperty(false);
+    private javafx.scene.image.Image eyeOpen;
+    private javafx.scene.image.Image eyeClosed;
 
 
     @FXML
@@ -48,6 +55,22 @@ public class init {
         ComboBox.setItems(FXCollections.observableArrayList("MySQL", "PostgreSQL", "Redis", "SqlServer"));
         ComboBox.setValue("MySQL");
         portTextField.setText("3306");
+
+        /**
+         * 网友建议 显示密码功能。
+         */
+        passwordPlainTextField.visibleProperty().bind(showPassword);
+        passwordPlainTextField.managedProperty().bind(showPassword);
+        passwordTextField.visibleProperty().bind(showPassword.not());
+        passwordTextField.managedProperty().bind(showPassword.not());
+        passwordPlainTextField.textProperty().bindBidirectional(passwordTextField.textProperty());
+
+        showPassword.set(false);
+        eyeOpen = loadImageOrFallback("/images/look.png", "/images/ico.png");
+        eyeClosed = loadImageOrFallback("/images/hidden.png", "/images/ico.png");
+        if (togglePasswordImage != null) {
+            togglePasswordImage.setImage(eyeClosed);
+        }
 
         savedConfigsList.setItems(FXCollections.observableArrayList(dao.getAllConfigs()));
 
@@ -112,7 +135,7 @@ public class init {
             panelCtrl.setControllers(ctrl);
 
             Stage panelStage = new Stage();
-            panelStage.setTitle("Turacos V1.4.1 By: Alanni");
+            panelStage.setTitle("Turacos V1.4.3 By: Alanni");
             panelStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream(("/images/ico.png")))));
             panelStage.setScene(new Scene(root, 900, 600));
             panelStage.show();
@@ -246,6 +269,32 @@ public class init {
             throw new RuntimeException(e);
         }
     }
-    
+
+    @FXML
+    private void onTogglePasswordVisibility() {
+        showPassword.set(!showPassword.get());
+        if (togglePasswordImage != null) {
+            togglePasswordImage.setImage(showPassword.get() ? eyeOpen : eyeClosed);
+        }
+    }
+
+    private javafx.scene.image.Image loadImageOrFallback(String primary, String fallback) {
+        try {
+            java.net.URL p = getClass().getResource(primary);
+            if (p != null) {
+                return new javafx.scene.image.Image(p.toExternalForm());
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            java.net.URL f = getClass().getResource(fallback);
+            if (f != null) {
+                return new javafx.scene.image.Image(f.toExternalForm());
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
 
 }
