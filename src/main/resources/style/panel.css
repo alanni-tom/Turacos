@@ -1,0 +1,425 @@
+/* panel.css - 优化版现代化样式 */
+
+.root {
+    -fx-font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    -fx-accent: #6366f1;
+    -fx-focus-color: #6366f1;
+}
+
+/* 主容器背景 */
+.anchor-pane {
+    -fx-background-color: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* SplitPane - 紧凑设计 */
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
+    -fx-background-insets: 0;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+    -fx-pref-width: 4px;
+    -fx-cursor: h-resize;
+}
+
+.split-pane:vertical > .split-pane-divider {
+    -fx-pref-height: 4px;
+    -fx-cursor: v-resize;
+}
+
+.split-pane > .split-pane-divider:hover {
+    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+}
+
+/* TreeView - 紧凑舒适的侧边栏 */
+.tree-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 1px 0 0;
+    -fx-background-radius: 0;
+    -fx-padding: 8px;
+    -fx-pref-width: 180px; /* 控制宽度 */
+}
+
+.tree-view .tree-cell {
+    -fx-text-fill: #475569; /* 改为深灰色，更舒适 */
+    -fx-background-color: transparent;
+    -fx-padding: 4px 8px; /* 减少行间距 */
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-size: 14px; /* 稍小字体 */
+    -fx-min-height: 24px; /* 控制最小行高 */
+    -fx-pref-height: 24px;
+}
+
+.tree-view .tree-cell:hover {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #334155;
+}
+
+.tree-view .tree-cell:selected {
+    -fx-background-color: #6366f1;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+}
+
+.tree-view .arrow {
+    -fx-background-color: #64748b;
+}
+
+.tree-view .tree-disclosure-node {
+    -fx-padding: 4px 4px 4px 0;
+}
+
+/* TabPane - 紧凑标签页 - 只修改这部分 */
+.tab-pane {
+    -fx-background-color: transparent;
+    -fx-tab-min-height: 26px; /* 进一步减少高度 */
+    -fx-tab-max-height: 26px;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: transparent;
+    -fx-padding: 4px 6px 0 6px; /* 进一步减少内边距 */
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 4px 4px 0 0;
+    -fx-border-radius: 4px 4px 0 0;
+    -fx-padding: 4px 12px; /* 进一步减少内边距 */
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px 1px 0 1px;
+    -fx-font-size: 14px; /* 稍小字体 */
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4px 4px 0 0;
+    -fx-border-color: #6366f1;
+    -fx-border-width: 1px 1px 0 1px;
+    -fx-text-fill: #6366f1;
+    -fx-font-weight: 600;
+}
+
+.tab-pane .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0 0 6px 6px;
+    -fx-border-radius: 0 0 6px 6px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 1px 1px 1px;
+    -fx-padding: 12px;
+}
+
+/* Button - 紧凑按钮 */
+.button {
+    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+    -fx-text-fill: white;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 12px; /* 减少内边距 */
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.3), 6, 0, 0, 2);
+}
+
+.button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.1), 2, 0, 0, 0);
+}
+
+/* TableView - 紧凑表格 */
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-size: 18px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-text-fill: #475569;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 8px;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1f5f9;
+    -fx-min-height: 28px;
+    -fx-font-size: 18px;
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #fafafa;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #6366f1;
+    -fx-text-fill: white;
+}
+
+.table-view .table-cell {
+    -fx-border-color: #f1f5f9;
+    -fx-padding: 4px 8px;
+    -fx-font-size: 12px;
+}
+
+/* TextArea - 紧凑文本区域 */
+.text-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px;
+    -fx-font-size: 12px;
+}
+
+.text-area .content {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 4px;
+}
+
+.text-area:focused {
+    -fx-border-color: #6366f1;
+    -fx-border-width: 1px;
+}
+
+/* 日志区域 */
+.log-text-area {
+    -fx-background-color: #f8fafc;
+    -fx-text-fill: #475569;
+    -fx-border-color: #e2e8f0;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 11px;
+    -fx-padding: 6px;
+}
+
+.log-text-area .content {
+    -fx-background-color: #f8fafc;
+}
+
+/* VBox容器样式 */
+.vbox-container {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #e2e8f0;
+    -fx-padding: 10px;
+    -fx-spacing: 6px;
+}
+
+/* 工具按钮 */
+.tool-button {
+    -fx-background-color: #f8fafc;
+    -fx-text-fill: #475569;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+}
+
+.tool-button:hover {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #334155;
+}
+
+/* 滚动条优化 */
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 3px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 3px;
+}
+
+/* 紧凑的SplitPane内容区域 */
+.compact-split-pane {
+    -fx-padding: 0;
+}
+
+.compact-split-pane .split-pane-divider {
+    -fx-pref-width: 3px;
+}
+
+/* SQL编辑器特殊样式 */
+.sql-text-area {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 15px;
+}
+
+/* log 输出样式*/
+.log-text-area {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 14px;
+}
+
+/* ---------------- PSQL样式 ---------------- */
+.psql-pane {
+    -fx-background-color: linear-gradient(to bottom right, #f9fafb, #f1f5f9);
+    -fx-padding: 20px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+/* 标签文字 */
+.psql-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 13px;
+}
+
+/* 下拉框 */
+.psql-choicebox {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-size: 13px;
+    -fx-padding: 4px;
+}
+
+/* 输入框 */
+.psql-textfield {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-size: 13px;
+    -fx-padding: 6px;
+}
+
+.psql-textfield:focused {
+    -fx-border-color: #6366f1;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 6, 0, 0, 1);
+}
+
+/* 执行按钮 */
+.psql-button {
+    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 6px 16px;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
+}
+
+.psql-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
+}
+
+.psql-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
+}
+
+/* 输出框 */
+.psql-output {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: #334155;
+    -fx-padding: 10px;
+}
+
+.psql-output:focused {
+    -fx-border-color: #6366f1;
+}
+
+/* ---- 分区块通用样式 ---- */
+.psql-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 14px;
+    -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.1), 6, 0, 0, 2);
+}
+
+/* 分区标题 */
+.psql-section-title {
+    -fx-text-fill: #334155;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+
+/* 反弹 Shell 输出区域 */
+.psql-shell-section {
+    -fx-background-color: #f1f5f9; /* 淡灰背景 */
+    -fx-border-color: #cbd5e1; /* 边框颜色 */
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px; /* 内边距 */
+    -fx-spacing: 6px; /* VBox 内部间距 */
+}
+
+.psql-shell-output {
+    -fx-background-color: #e2e8f0; /* 输出框背景 */
+    -fx-border-color: #cbd5e1; /* 输出框边框 */
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+    -fx-wrap-text: true;
+}
+
+.psql-shell-button {
+    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+    -fx-text-fill: white;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 12px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
+}
+
+.psql-shell-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.3), 6, 0, 0, 2);
+}
+
+.psql-shell-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.1), 2, 0, 0, 0);
+}
+
