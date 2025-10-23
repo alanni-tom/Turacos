@@ -64,8 +64,8 @@ git clone https://github.com/alanni-tom/Turacos.git
 cd turacos
 mvn clean package
 
-# 运行工具
-java -jar target/turacos-1.4.1.jar
+# 运行工具, 这里需要加载 javafx sdk模块
+java -jar Turacos-1.0-SNAPSHOT.jar
 ```
 
 ### 🚀 项目预览
