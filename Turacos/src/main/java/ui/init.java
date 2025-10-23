@@ -135,7 +135,7 @@ public class init {
             panelCtrl.setControllers(ctrl);
 
             Stage panelStage = new Stage();
-            panelStage.setTitle("Turacos V1.4.1 By: Alanni");
+            panelStage.setTitle("Turacos V1.4.3 By: Alanni");
             panelStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream(("/images/ico.png")))));
             panelStage.setScene(new Scene(root, 900, 600));
             panelStage.show();
