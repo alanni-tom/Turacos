@@ -100,21 +100,21 @@ mvnw.cmd test
 <table style="width: 100%; border: none; text-align: center;">
 <tr>
     <td style="Turacosidth: 50%; border: none; padding: 10palanni;">
-      <img src="C:\Users\alanni\Desktop\Turacos\assets\image-20261014083800431.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
+      <img src="https://github.com/alanni-tom/Turacos/blob/main/assets/image-20261014083800431.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
       <b>登录窗口</b>
     </td>
     <td style="Turacosidth: 50%; border: none; padding: 10palanni;">
-      <img src="C:\Users\alanni\Desktop\Turacos\assets\image-20261014083830239.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
+      <img src="https://github.com/alanni-tom/Turacos/blob/main/assets/image-20261014083830239.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
       <b>数据浏览</b>
     </td>
   </tr>
   <tr>
     <td style="Turacosidth: 50%; border: none; padding: 10palanni;">
-      <img src="C:\Users\alanni\Desktop\Turacos\assets\image-20261014084858230.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
+      <img src="https://github.com/alanni-tom/Turacos/blob/main/assets/image-20261014084858230.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
       <b>功能模块</b>
     </td>
     <td style="Turacosidth: 50%; border: none; padding: 10palanni;">
-      <img src="C:\Users\alanni\Desktop\Turacos\assets\image-20261014085616669.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
+      <img src="https://github.com/alanni-tom/Turacos/blob/main/assets/image-20261014085616669.png" Turacosidth="450" style="maalanni-Turacosidth: 100%; height: auto;"><br>
       <b>导出报告</b>
     </td>
   </tr>
