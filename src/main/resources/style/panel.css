@@ -1,91 +1,151 @@
-/* panel.css - 优化版现代化样式 */
+﻿/* ============================================================
+   Turacos Panel — 基础 + 亮色主题（默认）
+   深色主题由 theme-dark.css 覆盖，切换逻辑见 ui.ThemeManager
+   ============================================================ */
 
 .root {
-    -fx-font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-    -fx-accent: #6366f1;
-    -fx-focus-color: #6366f1;
+    -fx-font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    -fx-font-size: 13px;
+    -fx-accent: #16a34a;
+    -fx-focus-color: #16a34a;
+    -fx-faint-focus-color: transparent;
 }
 
-/* 主容器背景 */
+/* ---------------- 布局骨架 ---------------- */
+
 .anchor-pane {
-    -fx-background-color: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    -fx-background-color: #f4f6fa;
 }
 
-/* SplitPane - 紧凑设计 */
+.app-root {
+    -fx-background-color: #f4f6fa;
+}
+
+.app-header {
+    -fx-background-color: #232935;
+    -fx-border-color: transparent transparent #16a34a transparent;
+    -fx-border-width: 0 0 2px 0;
+    -fx-padding: 9px 16px;
+}
+
+.app-brand-icon {
+    -fx-font-size: 18px;
+}
+
+.app-brand {
+    -fx-text-fill: #eef1f7;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-font-family: "Consolas", "JetBrains Mono", "Courier New", monospace;
+}
+
+.app-subtitle {
+    -fx-text-fill: #8b96ab;
+    -fx-font-size: 10px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+}
+
+.app-hint {
+    -fx-text-fill: #8b96ab;
+    -fx-font-size: 10px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-padding: 0 4 0 0;
+}
+
+/* ---------------- SplitPane ---------------- */
+
 .split-pane {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-.split-pane > .split-pane-divider {
-    -fx-background-color: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
-    -fx-background-insets: 0;
+.main-split {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
 }
 
+.split-pane > .split-pane-divider,
+.main-split > .split-pane-divider {
+    -fx-background-color: #e4e7ef;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.main-split:horizontal > .split-pane-divider,
 .split-pane:horizontal > .split-pane-divider {
     -fx-pref-width: 4px;
     -fx-cursor: h-resize;
 }
 
+.main-split:vertical > .split-pane-divider,
 .split-pane:vertical > .split-pane-divider {
     -fx-pref-height: 4px;
     -fx-cursor: v-resize;
 }
 
-.split-pane > .split-pane-divider:hover {
-    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+.split-pane > .split-pane-divider:hover,
+.main-split > .split-pane-divider:hover {
+    -fx-background-color: #16a34a;
 }
 
-/* TreeView - 紧凑舒适的侧边栏 */
-.tree-view {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+/* ---------------- 左侧数据库树 ---------------- */
+
+.side-panel {
+    -fx-background-color: #f7f8fc;
+    -fx-border-color: #e4e7ef;
     -fx-border-width: 0 1px 0 0;
-    -fx-background-radius: 0;
-    -fx-padding: 8px;
-    -fx-pref-width: 180px; /* 控制宽度 */
 }
 
-.tree-view .tree-cell {
-    -fx-text-fill: #475569; /* 改为深灰色，更舒适 */
+.tree-view,
+.db-tree {
     -fx-background-color: transparent;
-    -fx-padding: 4px 8px; /* 减少行间距 */
-    -fx-border-radius: 4px;
+    -fx-border-color: transparent;
+    -fx-padding: 6px;
+}
+
+.tree-view .tree-cell,
+.db-tree .tree-cell {
+    -fx-text-fill: #4b5563;
+    -fx-background-color: transparent;
+    -fx-padding: 5px 8px;
     -fx-background-radius: 4px;
-    -fx-font-size: 14px; /* 稍小字体 */
-    -fx-min-height: 24px; /* 控制最小行高 */
-    -fx-pref-height: 24px;
+    -fx-font-size: 13px;
 }
 
-.tree-view .tree-cell:hover {
-    -fx-background-color: #f1f5f9;
-    -fx-text-fill: #334155;
+.tree-view .tree-cell:hover,
+.db-tree .tree-cell:hover {
+    -fx-background-color: #eef2f7;
+    -fx-text-fill: #1f2937;
 }
 
-.tree-view .tree-cell:selected {
-    -fx-background-color: #6366f1;
-    -fx-text-fill: #ffffff;
+.tree-view .tree-cell:selected,
+.db-tree .tree-cell:selected {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #15803d;
     -fx-font-weight: 600;
 }
 
-.tree-view .arrow {
-    -fx-background-color: #64748b;
+.tree-view .arrow,
+.db-tree .arrow {
+    -fx-background-color: #94a3b8;
 }
 
-.tree-view .tree-disclosure-node {
+.tree-view .tree-disclosure-node,
+.db-tree .tree-disclosure-node {
     -fx-padding: 4px 4px 4px 0;
 }
 
-/* TabPane - 紧凑标签页 - 只修改这部分 */
+/* ---------------- TabPane ---------------- */
+
 .tab-pane {
     -fx-background-color: transparent;
-    -fx-tab-min-height: 26px; /* 进一步减少高度 */
-    -fx-tab-max-height: 26px;
+    -fx-tab-min-height: 30px;
+    -fx-tab-max-height: 30px;
 }
 
 .tab-pane .tab-header-area {
     -fx-background-color: transparent;
-    -fx-padding: 4px 6px 0 6px; /* 进一步减少内边距 */
+    -fx-padding: 6px 8px 0 8px;
 }
 
 .tab-pane .tab-header-background {
@@ -93,22 +153,28 @@
 }
 
 .tab-pane .tab {
-    -fx-background-color: #f8fafc;
-    -fx-background-radius: 4px 4px 0 0;
-    -fx-border-radius: 4px 4px 0 0;
-    -fx-padding: 4px 12px; /* 进一步减少内边距 */
-    -fx-border-color: #e2e8f0;
+    -fx-background-color: #eef1f7;
+    -fx-background-radius: 5px 5px 0 0;
+    -fx-border-radius: 5px 5px 0 0;
+    -fx-padding: 5px 14px;
+    -fx-border-color: #e4e7ef;
     -fx-border-width: 1px 1px 0 1px;
-    -fx-font-size: 14px; /* 稍小字体 */
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #e4e9f5;
+    -fx-text-fill: #334155;
 }
 
 .tab-pane .tab:selected {
     -fx-background-color: #ffffff;
     -fx-background-insets: 0;
-    -fx-background-radius: 4px 4px 0 0;
-    -fx-border-color: #6366f1;
-    -fx-border-width: 1px 1px 0 1px;
-    -fx-text-fill: #6366f1;
+    -fx-background-radius: 5px 5px 0 0;
+    -fx-border-color: #16a34a #e4e7ef transparent #e4e7ef;
+    -fx-border-width: 2px 1px 0 1px;
+    -fx-text-fill: #15803d;
     -fx-font-weight: 600;
 }
 
@@ -120,78 +186,91 @@
     -fx-background-color: #ffffff;
     -fx-background-radius: 0 0 6px 6px;
     -fx-border-radius: 0 0 6px 6px;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #e4e7ef;
     -fx-border-width: 0 1px 1px 1px;
     -fx-padding: 12px;
 }
 
-/* Button - 紧凑按钮 */
+/* ---------------- 按钮 ---------------- */
+
 .button {
-    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
-    -fx-text-fill: white;
+    -fx-background-color: #16a34a;
+    -fx-text-fill: #ffffff;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-padding: 6px 12px; /* 减少内边距 */
+    -fx-padding: 6px 14px;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
 }
 
 .button:hover {
-    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.3), 6, 0, 0, 2);
+    -fx-background-color: #159042;
 }
 
 .button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.1), 2, 0, 0, 0);
+    -fx-background-color: #12813c;
 }
 
-/* TableView - 紧凑表格 */
+/* ---------------- TableView ---------------- */
+
 .table-view {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #e4e7ef;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-font-size: 18px;
+    -fx-font-size: 12px;
 }
 
 .table-view .column-header {
-    -fx-background-color: #f8fafc;
-    -fx-border-color: #e2e8f0;
-    -fx-text-fill: #475569;
+    -fx-background-color: #f4f6fa;
+    -fx-border-color: #e4e7ef;
+    -fx-text-fill: #637083;
     -fx-font-weight: 600;
     -fx-font-size: 12px;
     -fx-padding: 6px 8px;
 }
 
+.table-view .filler {
+    -fx-background-color: #f4f6fa;
+}
+
 .table-view .table-row-cell {
     -fx-background-color: #ffffff;
-    -fx-border-color: #f1f5f9;
-    -fx-min-height: 28px;
-    -fx-font-size: 18px;
-}
-
-.table-view .table-row-cell:even {
-    -fx-background-color: #fafafa;
-}
-
-.table-view .table-row-cell:selected {
-    -fx-background-color: #6366f1;
-    -fx-text-fill: white;
-}
-
-.table-view .table-cell {
-    -fx-border-color: #f1f5f9;
-    -fx-padding: 4px 8px;
+    -fx-border-color: #eef1f6;
+    -fx-min-height: 26px;
+    -fx-pref-height: 26px;
     -fx-font-size: 12px;
 }
 
-/* TextArea - 紧凑文本区域 */
+.table-view .table-row-cell:even {
+    -fx-background-color: #f9fafc;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #eef6f2;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #dcfce7;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #15803d;
+}
+
+.table-view .table-cell {
+    -fx-border-color: #eef1f6;
+    -fx-padding: 3px 8px;
+    -fx-font-size: 12px;
+    -fx-text-fill: #334155;
+}
+
+/* ---------------- 文本区 ---------------- */
+
 .text-area {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #dfe3ee;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
     -fx-padding: 8px;
@@ -204,48 +283,37 @@
 }
 
 .text-area:focused {
-    -fx-border-color: #6366f1;
+    -fx-border-color: #16a34a;
     -fx-border-width: 1px;
 }
 
-/* 日志区域 */
-.log-text-area {
-    -fx-background-color: #f8fafc;
-    -fx-text-fill: #475569;
-    -fx-border-color: #e2e8f0;
-    -fx-font-family: "Consolas", "Monaco", monospace;
-    -fx-font-size: 11px;
-    -fx-padding: 6px;
-}
-
-.log-text-area .content {
-    -fx-background-color: #f8fafc;
-}
-
-/* VBox容器样式 */
-.vbox-container {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 6px;
-    -fx-border-radius: 6px;
-    -fx-border-color: #e2e8f0;
-    -fx-padding: 10px;
-    -fx-spacing: 6px;
-}
-
-/* 工具按钮 */
-.tool-button {
-    -fx-background-color: #f8fafc;
-    -fx-text-fill: #475569;
-    -fx-border-color: #e2e8f0;
-    -fx-border-width: 1px;
-}
-
-.tool-button:hover {
-    -fx-background-color: #f1f5f9;
+.sql-text-area {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 13px;
     -fx-text-fill: #334155;
 }
 
-/* 滚动条优化 */
+/* 日志区：浅色终端（深色主题会覆盖） */
+.log-text-area {
+    -fx-background-color: #f7f9fc;
+    -fx-text-fill: #475569;
+    -fx-border-color: #e4e7ef;
+    -fx-border-width: 0;
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 8px;
+}
+
+.log-text-area .content {
+    -fx-background-color: #f7f9fc;
+}
+
+.log-text-area:focused {
+    -fx-border-color: transparent;
+}
+
+/* ---------------- 滚动条 ---------------- */
+
 .scroll-bar {
     -fx-background-color: transparent;
 }
@@ -260,166 +328,187 @@
 }
 
 .scroll-bar .track {
-    -fx-background-color: #f1f5f9;
-    -fx-background-radius: 3px;
+    -fx-background-color: transparent;
 }
 
-/* 紧凑的SplitPane内容区域 */
-.compact-split-pane {
-    -fx-padding: 0;
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2px;
 }
 
-.compact-split-pane .split-pane-divider {
-    -fx-pref-width: 3px;
-}
+/* ---------------- 功能区（psql 卡片） ---------------- */
 
-/* SQL编辑器特殊样式 */
-.sql-text-area {
-    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
-    -fx-font-size: 15px;
-}
-
-/* log 输出样式*/
-.log-text-area {
-    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
-    -fx-font-size: 14px;
-}
-
-/* ---------------- PSQL样式 ---------------- */
 .psql-pane {
-    -fx-background-color: linear-gradient(to bottom right, #f9fafb, #f1f5f9);
-    -fx-padding: 20px;
-    -fx-border-color: #e2e8f0;
+    -fx-background-color: #f7f8fc;
+    -fx-padding: 16px;
+    -fx-border-color: #e4e7ef;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
 }
 
-/* 标签文字 */
 .psql-label {
-    -fx-text-fill: #475569;
-    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 12px;
+    -fx-min-width: 44px;
 }
 
-/* 下拉框 */
 .psql-choicebox {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #dfe3ee;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
     -fx-padding: 4px;
 }
 
-/* 输入框 */
+.psql-choicebox .list-cell {
+    -fx-text-fill: #334155;
+}
+
 .psql-textfield {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #dfe3ee;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
+    -fx-text-fill: #334155;
     -fx-padding: 6px;
 }
 
 .psql-textfield:focused {
-    -fx-border-color: #6366f1;
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 6, 0, 0, 1);
+    -fx-border-color: #16a34a;
 }
 
-/* 执行按钮 */
 .psql-button {
-    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
+    -fx-background-color: #16a34a;
     -fx-text-fill: #ffffff;
     -fx-background-radius: 6px;
     -fx-border-radius: 6px;
     -fx-padding: 6px 16px;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
 }
 
 .psql-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
+    -fx-background-color: #159042;
 }
 
 .psql-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
+    -fx-background-color: #12813c;
 }
 
-/* 输出框 */
 .psql-output {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #dfe3ee;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
     -fx-font-family: "Consolas", "Monaco", monospace;
-    -fx-font-size: 13px;
+    -fx-font-size: 12px;
     -fx-text-fill: #334155;
     -fx-padding: 10px;
 }
 
 .psql-output:focused {
-    -fx-border-color: #6366f1;
+    -fx-border-color: #16a34a;
 }
 
-/* ---- 分区块通用样式 ---- */
 .psql-section {
     -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-border-color: #e8ecf4;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-padding: 14px;
-    -fx-effect: dropshadow(gaussian, rgba(148, 163, 184, 0.1), 6, 0, 0, 2);
+    -fx-padding: 14px 16px;
 }
 
-/* 分区标题 */
 .psql-section-title {
-    -fx-text-fill: #334155;
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-font-family: "Consolas", "Courier New", monospace;
 }
 
-/* 反弹 Shell 输出区域 */
 .psql-shell-section {
-    -fx-background-color: #f1f5f9; /* 淡灰背景 */
-    -fx-border-color: #cbd5e1; /* 边框颜色 */
+    -fx-background-color: #f7f8fc;
+    -fx-border-color: #e4e7ef;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-padding: 8px; /* 内边距 */
-    -fx-spacing: 6px; /* VBox 内部间距 */
+    -fx-padding: 8px;
+    -fx-spacing: 6px;
 }
 
 .psql-shell-output {
-    -fx-background-color: #e2e8f0; /* 输出框背景 */
-    -fx-border-color: #cbd5e1; /* 输出框边框 */
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dfe3ee;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
     -fx-padding: 8px;
     -fx-font-family: "Consolas", "Monaco", monospace;
-    -fx-font-size: 13px;
-    -fx-text-fill: #1e293b;
+    -fx-font-size: 12px;
+    -fx-text-fill: #334155;
     -fx-wrap-text: true;
 }
 
 .psql-shell-button {
-    -fx-background-color: linear-gradient(to bottom, #6366f1, #4f46e5);
-    -fx-text-fill: white;
+    -fx-background-color: #16a34a;
+    -fx-text-fill: #ffffff;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
     -fx-padding: 6px 12px;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 4, 0, 0, 1);
 }
 
 .psql-shell-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #4f46e5, #4338ca);
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.3), 6, 0, 0, 2);
+    -fx-background-color: #159042;
 }
 
 .psql-shell-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #4338ca, #3730a3);
-    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.1), 2, 0, 0, 0);
+    -fx-background-color: #12813c;
 }
 
+/* 其他容器兼容类 */
+.vbox-container {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #e4e7ef;
+    -fx-padding: 10px;
+    -fx-spacing: 6px;
+}
+
+.tool-button {
+    -fx-background-color: #eef1f7;
+    -fx-text-fill: #64748b;
+    -fx-border-color: #e4e7ef;
+    -fx-border-width: 1px;
+}
+
+.tool-button:hover {
+    -fx-background-color: #e4e9f5;
+    -fx-text-fill: #334155;
+}
+
+.compact-split-pane {
+    -fx-padding: 0;
+}
+
+/* 主题切换小按钮（顶栏） */
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b6c2d4;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6px;
+    -fx-border-color: #3a4454;
+    -fx-border-radius: 6px;
+    -fx-padding: 5px 12px;
+    -fx-cursor: hand;
+}
+
+.theme-toggle:hover {
+    -fx-border-color: #16a34a;
+    -fx-text-fill: #ffffff;
+}

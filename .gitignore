@@ -3,6 +3,16 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### 本地连接配置与凭据（敏感：DB 密码曾以明文存储）###
+config.db
+config.db-journal
+config.db-wal
+config.db-shm
+.turacos/
+
+### 合规报告等本地产物 ###
+reports/
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
@@ -36,3 +46,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### 本地 IDE / 工具配置（含聊天附件，不入库）###
+.opencode/

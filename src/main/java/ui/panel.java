@@ -1,8 +1,13 @@
 package ui;
 
+import compliance.BaselineScanner;
+import compliance.ComplianceReport;
+import compliance.Finding;
 import controller.controllers;
 import controller.udf.udfPostgresql;
 import controller.udf.udfMysql;
+import database.DatabaseAdapter;
+import database.DatabaseFactory;
 import database.mssql;
 import database.psql;
 import database.mysql;
@@ -25,12 +30,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.sql.SQLException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class panel {
 
@@ -60,8 +67,6 @@ public class panel {
     private TextField mssqlFilePathField;
     @FXML
     private TextField commandField;
-    @FXML
-    private TextArea psqlOutputArea;
     @FXML
     private TextField MySQLreversePort;
     @FXML
@@ -94,6 +99,10 @@ public class panel {
     private TextField mssqlReverseHost;
     @FXML
     private TextField mssqlReversePort;
+    @FXML
+    private Label complianceHintLabel;
+    @FXML
+    private Button themeButton;
 
 
     private controllers ctrl;
@@ -102,11 +111,44 @@ public class panel {
     private final Image schemaIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/schema.png")));
     private final Image tableIcon = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/table.png")));
 
-    public void setControllers(controllers ctrl) throws IOException, URISyntaxException, SQLException {
+    /**
+     * 统一的守护线程池：替代散落的 new Thread(...)，
+     * 避免线程无法回收、任务无命名、退出时残留非守护线程。
+     */
+    private static final ExecutorService WORKER = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "turacos-worker");
+        t.setDaemon(true);
+        return t;
+    });
+
+    public void setControllers(controllers ctrl) {
         this.ctrl = ctrl;
+        initTableView();
+        if (themeButton != null) {
+            themeButton.setText(ThemeManager.isDark() ? "浅色" : "深色");
+        }
         initDatabasesAsync();
         setupDoubleClickHandler();
         setupTreeContextMenu();
+    }
+
+    /** 切换亮/暗主题并同步按钮文案。 */
+    @FXML
+    private void onToggleTheme() {
+        boolean dark = ThemeManager.toggle();
+        if (themeButton != null) {
+            themeButton.setText(dark ? "浅色" : "深色");
+        }
+    }
+
+    /** 表格基础配置：非约束列宽（列过多时可横向滚动、可拖动列宽）+ 空态占位。 */
+    private void initTableView() {
+        if (tableView == null) return;
+        // 允许横向滚动与列宽拖动：约束策略会把列压窄导致内容“看不到、拉不动”
+        tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        Label placeholder = new Label("暂无数据\n双击左侧数据库/表节点加载");
+        placeholder.setStyle("-fx-text-fill: #56637c; -fx-font-size: 12px; -fx-alignment: center;");
+        tableView.setPlaceholder(placeholder);
     }
 
     private void initDatabasesAsync() {
@@ -120,7 +162,7 @@ public class panel {
             fileChoiceBox.getItems().setAll("PG_Read", "COPY");
             fileChoiceBox.setValue("PG_Read");
         } else if ("MySQL".equals(dbType)) {
-            MySQLexecChoiceBox.getItems().setAll("UDF");
+            MySQLexecChoiceBox.getItems().setAll("UDF", "SQL");
             MySQLexecChoiceBox.setValue("UDF");
 
             myfileChoiceBox.getItems().setAll("LOAD_DATA", "LOAD_FILE");
@@ -185,7 +227,6 @@ public class panel {
                             List<String> preSqls = udfMysql.branch(os, bits, pluginDir, sqlMode);
                             if (!preSqls.isEmpty()) {
                                 db.executeSQL(String.join("\n", preSqls));
-
                             }
                         } finally {
                             db.close();
@@ -201,14 +242,12 @@ public class panel {
                         redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
                         try {
                             results = db.getDatabaseInfo();
-                            try {
-                                String auto = db.autoLoadModuleFromResources();
-                                results = results + "\n" + auto;
-                            } catch (Exception ignored) {
-                            }
                         } finally {
                             db.close();
                         }
+                        // 不在建立连接时自动向目标写入/加载模块（侵入性操作），
+                        // 交由用户通过“模块加载”按钮显式触发
+                        results += "\n[i] 模块加载请在功能页手动触发（写入 + MODULE LOAD 为侵入性操作）。\n";
                     }
 
                     final String out = results;
@@ -217,15 +256,14 @@ public class panel {
                     List<String> databases = ctrl.loadDatabases();
                     if (databases == null || databases.isEmpty()) return null;
 
+                    List<TreeItem<String>> children = new ArrayList<>();
+                    for (String dbName : databases) {
+                        children.add(new TreeItem<>(dbName, createIcon(dbIcon)));
+                    }
                     Platform.runLater(() -> {
                         TreeItem<String> rootItem = new TreeItem<>("[数据库列表]");
                         rootItem.setExpanded(true);
-                        rootPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/style/panel.css")).toExternalForm());
-
-                        for (String dbName : databases) {
-                            TreeItem<String> dbItem = new TreeItem<>(dbName, createIcon(dbIcon));
-                            rootItem.getChildren().add(dbItem);
-                        }
+                        rootItem.getChildren().addAll(children);
                         treeView.setRoot(rootItem);
                         treeView.setShowRoot(false);
                     });
@@ -235,132 +273,48 @@ public class panel {
                 return null;
             }
         };
-        new Thread(initTask).start();
+        WORKER.execute(initTask);
     }
 
-    private void initDatabases() throws SQLException {
-        if (ctrl == null || treeView == null) return;
-        String results;
-        if ("PostgreSQL".equals(ctrl.getDbType())) {
-            psql db = new psql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            results = db.getDatabaseInfo();
-            db.close();
-
-            execChoiceBox.getItems().clear();
-            execChoiceBox.getItems().add("COPY");
-            execChoiceBox.getItems().add("UDF");
-            execChoiceBox.setValue("COPY");
-
-            fileChoiceBox.getItems().clear();
-            fileChoiceBox.getItems().add("PG_Read");
-            fileChoiceBox.getItems().add("COPY");
-            fileChoiceBox.setValue("PG_Read");
-        } else if ("MySQL".equals(ctrl.getDbType())) {
-            mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            results = db.getDatabaseInfo();
-            db.close();
-
-            MySQLexecChoiceBox.getItems().clear();
-            MySQLexecChoiceBox.getItems().add("UDF");
-            MySQLexecChoiceBox.getItems().add("SQL");
-            MySQLexecChoiceBox.setValue("UDF");
-
-            myfileChoiceBox.getItems().clear();
-            myfileChoiceBox.getItems().add("LOAD_DATA");
-            myfileChoiceBox.getItems().add("LOAD_FILE");
-            myfileChoiceBox.setValue("LOAD_DATA");
-        } else if ("MSSQL".equals(ctrl.getDbType())) {
-            mssql db = new mssql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            results = db.getDatabaseInfo();
-            db.close();
-
-            if (mssqlExecChoiceBox != null) {
-                mssqlExecChoiceBox.getItems().clear();
-                mssqlExecChoiceBox.getItems().add("xp_cmdshell");
-                mssqlExecChoiceBox.getItems().add("CLR");
-                mssqlExecChoiceBox.getItems().add("OLE");
-                mssqlExecChoiceBox.setValue("xp_cmdshell");
-            }
-
-            if (mssqlFileChoiceBox != null) {
-                mssqlFileChoiceBox.getItems().clear();
-                mssqlFileChoiceBox.getItems().add("OPENROWSET");
-                mssqlFileChoiceBox.getItems().add("xp_cmdshell");
-                mssqlFileChoiceBox.getItems().add("DIR_LIST");
-                mssqlFileChoiceBox.setValue("OPENROWSET");
-            }
-        } else if ("Redis".equals(ctrl.getDbType())) {
-            redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            results = db.getDatabaseInfo();
-            try {
-                String auto = db.autoLoadModuleFromResources();
-                results = results + "\n" + auto;
-            } catch (Exception ignored) {
-            }
-            db.close();
-
-            if (redisExecChoiceBox != null) {
-                redisExecChoiceBox.getItems().clear();
-                redisExecChoiceBox.getItems().add("MODULE");
-                redisExecChoiceBox.getItems().add("LUA");
-                redisExecChoiceBox.setValue("MODULE");
-            }
-            if (redisFileChoiceBox != null) {
-                redisFileChoiceBox.getItems().clear();
-                redisFileChoiceBox.getItems().add("MODULE");
-                redisFileChoiceBox.getItems().add("LUA");
-                redisFileChoiceBox.setValue("MODULE");
-            }
-        } else {
-            results = "";
-        }
-
-        logTextArea.appendText(results);
-
-        List<String> databases = ctrl.loadDatabases();
-        if (databases == null || databases.isEmpty()) return;
-
-        TreeItem<String> rootItem = new TreeItem<>("[数据库列表]");
-        rootItem.setExpanded(true);
-        rootPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/style/panel.css")).toExternalForm());
-
-        for (String dbName : databases) {
-            TreeItem<String> dbItem = new TreeItem<>(dbName, createIcon(dbIcon));
-            rootItem.getChildren().add(dbItem);
-        }
-
-        treeView.setRoot(rootItem);
-        treeView.setShowRoot(false);
-
-
-    }
-
+    /**
+     * 树点击处理：
+     *  - 单击数据库节点：直接加载其结构（表/模式树），无需双击
+     *  - 双击表/键节点：加载数据（MySQL 为 db→table 扁平层级）
+     */
     private void setupDoubleClickHandler() {
         treeView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            if (event.getClickCount() == 2) {
-                TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
-                if (selectedItem == null) return;
+            TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
+            if (selectedItem == null) return;
 
-                TreeItem<String> parent = selectedItem.getParent();
-                TreeItem<String> grandparent = (parent != null) ? parent.getParent() : null;
+            TreeItem<String> parent = selectedItem.getParent();
+            TreeItem<String> grandparent = (parent != null) ? parent.getParent() : null;
+            if (parent == null) return;
 
-                String selected = selectedItem.getValue();
-                String parentVal = (parent != null) ? parent.getValue() : null;
-                String grandVal = (grandparent != null) ? grandparent.getValue() : null;
+            String selected = selectedItem.getValue();
+            String parentVal = parent.getValue();
+            String grandVal = (grandparent != null) ? grandparent.getValue() : null;
+            boolean mysqlFlat = "MySQL".equalsIgnoreCase(ctrl.getDbType());
+            int clicks = event.getClickCount();
 
-                if (parent == treeView.getRoot() && !"Database".equals(selected)) {
-                    loadSchemasAndTables(selected, selectedItem);
-                } else if (grandparent != null
-                        && grandparent != treeView.getRoot()
-                        && grandVal != null
-                        && !"Database".equals(grandVal)) {
-
-                    String dbName = grandVal;
-                    String schema = parentVal;
-                    String table = selected;
-
-                    showTableData(dbName, schema, table);
+            if (parent == treeView.getRoot()) {
+                // 数据库节点：单击展开表结构（双击兼容）
+                if (clicks >= 1) {
+                    loadSchemasAndTablesAsync(selected, selectedItem);
                 }
+                return;
+            }
+
+            if (clicks != 2) return; // 其余节点仅双击查看数据
+
+            if (mysqlFlat && grandparent == treeView.getRoot()) {
+                // MySQL：db → table，双击表直接看数据
+                showTableData(parentVal, "default", selected);
+            } else if (grandparent != null
+                    && grandparent != treeView.getRoot()
+                    && grandVal != null
+                    && !"Database".equals(grandVal)) {
+                // PostgreSQL/MSSQL：db → schema → table；Redis：db → Keys → key
+                showTableData(grandVal, parentVal, selected);
             }
         });
     }
@@ -390,52 +344,13 @@ public class panel {
         });
     }
 
-    private void refreshDatabaseList() {
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() {
-                try {
-                    List<String> databases = ctrl.loadDatabases();
-                    Platform.runLater(() -> {
-                        TreeItem<String> rootItem = new TreeItem<>("[数据库列表]");
-                        rootItem.setExpanded(true);
-                        for (String dbName : databases) {
-                            rootItem.getChildren().add(new TreeItem<>(dbName, createIcon(dbIcon)));
-                        }
-                        treeView.setRoot(rootItem);
-                        treeView.setShowRoot(false);
-                    });
-                } catch (Exception ex) {
-                    Platform.runLater(() -> logTextArea.appendText("[!] 刷新库列表失败: " + ex.getMessage() + "\n"));
-                }
-                return null;
-            }
-        };
-        new Thread(task).start();
-    }
-
-    private void refreshSchemasAndTables(TreeItem<String> dbItem) {
-        String dbName = dbItem.getValue();
-        dbItem.getChildren().clear();
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() {
-                try {
-                    loadSchemasAndTables(dbName, dbItem);
-                } catch (Exception ex) {
-                    Platform.runLater(() -> logTextArea.appendText("[!] 刷新结构失败: " + ex.getMessage() + "\n"));
-                }
-                return null;
-            }
-        };
-        new Thread(task).start();
-    }
-
     private void openAddConnectionModule() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainUi.fxml"));
             Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load(), 650, 362));
+            Scene scene = new Scene(loader.load(), 740, 470);
+            ThemeManager.apply(scene);
+            stage.setScene(scene);
             stage.setTitle("Turacos Login");
             stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/ico.png"))));
             stage.setResizable(false);
@@ -445,149 +360,204 @@ public class panel {
         }
     }
 
-
-    public void btnExecuteSql() {
-        try {
-            String results;
-            if ("PostgreSQL".equalsIgnoreCase(ctrl.getDbType())) {
-                psql db = new psql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                results = db.executeSQL(sqlTextArea.getText());
-                db.close();
-            } else {
-                mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                results = db.executeSQL(sqlTextArea.getText());
-                db.close();
+    private void refreshDatabaseList() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    List<String> databases = ctrl.loadDatabases();
+                    List<TreeItem<String>> children = new ArrayList<>();
+                    for (String dbName : databases) {
+                        children.add(new TreeItem<>(dbName, createIcon(dbIcon)));
+                    }
+                    Platform.runLater(() -> {
+                        TreeItem<String> rootItem = new TreeItem<>("[数据库列表]");
+                        rootItem.setExpanded(true);
+                        rootItem.getChildren().addAll(children);
+                        treeView.setRoot(rootItem);
+                        treeView.setShowRoot(false);
+                    });
+                } catch (Exception ex) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 刷新库列表失败: " + ex.getMessage() + "\n"));
+                }
+                return null;
             }
-            logTextArea.appendText("[+] 🚀 Results: \n" + results + "\n");
-        } catch (Exception e) {
-            logTextArea.appendText("[!] \uD83D\uDCA5 执行失败: " + e.getMessage() + "\n");
-        }
+        };
+        WORKER.execute(task);
     }
 
-    private void loadSchemasAndTables(String dbName, TreeItem<String> dbItem) {
+    private void refreshSchemasAndTables(TreeItem<String> dbItem) {
+        String dbName = dbItem.getValue();
+        // 先在 UI 线程清空，避免闪烁残留
+        dbItem.getChildren().clear();
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    loadSchemasAndTablesInto(dbName, dbItem);
+                } catch (Exception ex) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 刷新结构失败: " + ex.getMessage() + "\n"));
+                }
+                return null;
+            }
+        };
+        WORKER.execute(task);
+    }
+
+    /** 双击加载：后台查询，避免 UI 线程阻塞。 */
+    private void loadSchemasAndTablesAsync(String dbName, TreeItem<String> dbItem) {
         if (dbItem.getChildren().size() > 0) return;
-
-        if ("PostgreSQL".equalsIgnoreCase(ctrl.getDbType())) {
-            psql db = new psql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            List<String> schemas = db.getSchemas();
-            if (schemas == null || schemas.isEmpty()) {
-                db.close();
-                return;
-            }
-            for (String schema : schemas) {
-                TreeItem<String> schemaItem = new TreeItem<>(schema, createIcon(schemaIcon));
-                List<String> tables = db.getTables(schema);
-                if (tables != null) {
-                    for (String table : tables) {
-                        schemaItem.getChildren().add(new TreeItem<>(table, createIcon(tableIcon)));
-                    }
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    loadSchemasAndTablesInto(dbName, dbItem);
+                } catch (Exception ex) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 加载结构失败: " + ex.getMessage() + "\n"));
                 }
-                dbItem.getChildren().add(schemaItem);
+                return null;
             }
-            dbItem.setExpanded(true);
-            db.close();
-        } else if ("MSSQL".equalsIgnoreCase(ctrl.getDbType())) {
-            mssql db = new mssql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            List<String> schemas = db.getSchemas();
-            if (schemas == null || schemas.isEmpty()) {
-                db.close();
-                return;
-            }
-            for (String schema : schemas) {
-                TreeItem<String> schemaItem = new TreeItem<>(schema, createIcon(schemaIcon));
-                List<String> tables = db.getTables(schema);
-                if (tables != null) {
-                    for (String table : tables) {
-                        schemaItem.getChildren().add(new TreeItem<>(table, createIcon(tableIcon)));
-                    }
-                }
-                dbItem.getChildren().add(schemaItem);
-            }
-            dbItem.setExpanded(true);
-            db.close();
-        } else if ("MySQL".equalsIgnoreCase(ctrl.getDbType())) {
-            mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            List<String> schemas = db.getSchemas();
-            if (schemas == null || schemas.isEmpty()) {
-                db.close();
-                return;
-            }
-            for (String schema : schemas) {
-                TreeItem<String> schemaItem = new TreeItem<>(schema, createIcon(schemaIcon));
-                List<String> tables = db.getTables(schema);
-                if (tables != null) {
-                    for (String table : tables) {
-                        schemaItem.getChildren().add(new TreeItem<>(table, createIcon(tableIcon)));
-                    }
-                }
-                dbItem.getChildren().add(schemaItem);
-            }
-            dbItem.setExpanded(true);
-            db.close();
-        } else if ("Redis".equalsIgnoreCase(ctrl.getDbType())) {
-            redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            TreeItem<String> schemaItem = new TreeItem<>("Keys", createIcon(schemaIcon));
-            List<String> keys = db.getKeys(200);
-            if (keys != null) {
-                for (String key : keys) {
-                    schemaItem.getChildren().add(new TreeItem<>(key, createIcon(tableIcon)));
-                }
-            }
-            dbItem.getChildren().add(schemaItem);
-            dbItem.setExpanded(true);
-            db.close();
-        }
+        };
+        WORKER.execute(task);
     }
 
-    private void showTableData(String dbName, String schema, String table) {
-        List<List<Object>> rows = List.of();
-        List<String> columnNames = List.of();
-        if ("PostgreSQL".equalsIgnoreCase(ctrl.getDbType())) {
-            psql db = new psql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            rows = db.getTopRows(schema, table, 100);
-            tableView.getColumns().clear();
-            tableView.getItems().clear();
-            columnNames = db.getColumnNames(schema, table);
-            if (rows.isEmpty()) {
-                db.close();
-                return;
-            }
-            db.close();
-        } else if ("MSSQL".equalsIgnoreCase(ctrl.getDbType())) {
-            mssql db = new mssql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            rows = db.getTopRows(schema, table, 100);
-            tableView.getColumns().clear();
-            tableView.getItems().clear();
-            columnNames = db.getColumnNames(schema, table);
-            if (rows.isEmpty()) {
-                db.close();
-                return;
-            }
-            db.close();
-        } else if ("MySQL".equalsIgnoreCase(ctrl.getDbType())) {
-            mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
-            rows = db.getTopRows(schema, table, 100);
-            tableView.getColumns().clear();
-            tableView.getItems().clear();
-            columnNames = db.getColumnNames(schema, table);
-            if (rows.isEmpty()) {
-                db.close();
-                return;
-            }
-            db.close();
-        } else if ("Redis".equalsIgnoreCase(ctrl.getDbType())) {
+    /**
+     * 后台查询 schema/table 结构并在 FX 线程应用，避免 TreeItem 的 ObservableList
+     * 在非 UI 线程被修改（旧实现在双击事件里同步执行 DB 查询导致界面卡死）。
+     */
+    private void loadSchemasAndTablesInto(String dbName, TreeItem<String> dbItem) {
+        List<TreeItem<String>> children = new ArrayList<>();
+        boolean expand = false;
+
+        if ("Redis".equalsIgnoreCase(ctrl.getDbType())) {
             redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            List<String> vals = db.getKeyPreview(table);
-            tableView.getColumns().clear();
-            tableView.getItems().clear();
-            columnNames = List.of("Value");
-            rows = new ArrayList<>();
-            for (String v : vals) {
-                List<Object> r = new ArrayList<>();
-                r.add(v);
-                rows.add(r);
+            try {
+                TreeItem<String> schemaItem = new TreeItem<>("Keys", createIcon(schemaIcon));
+                // SCAN 分页加载，最多 5 页（约 1000 键），避免 UI 一次性渲染过多
+                String cursor = "0";
+                int loaded = 0;
+                for (int page = 0; page < 5; page++) {
+                    redis.ScanPage p = db.scanKeys(cursor, 200);
+                    for (String key : p.keys()) {
+                        schemaItem.getChildren().add(new TreeItem<>(key, createIcon(tableIcon)));
+                        loaded++;
+                    }
+                    cursor = p.nextCursor();
+                    if (cursor == null || cursor.equals("0") || p.keys().isEmpty()) break;
+                }
+                if (loaded >= 1000) {
+                    schemaItem.getChildren().add(new TreeItem<>("... [仅展示前 1000 条]", createIcon(tableIcon)));
+                }
+                children.add(schemaItem);
+                expand = true;
+            } finally {
+                db.close();
             }
-            db.close();
+        } else if ("MySQL".equalsIgnoreCase(ctrl.getDbType())) {
+            // MySQL 无 schema 概念：库 → 表 扁平展示（去掉“default”多余层级）
+            mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), dbName, ctrl.getUsername(), ctrl.getPassword());
+            try {
+                List<String> tables = db.getTables("default");
+                if (tables != null) {
+                    for (String table : tables) {
+                        children.add(new TreeItem<>(table, createIcon(tableIcon)));
+                    }
+                }
+                expand = true;
+            } finally {
+                db.close();
+            }
+        } else {
+            // PostgreSQL / MSSQL 走统一适配器（连接池 + 工厂）
+            DatabaseAdapter db = DatabaseFactory.createSqlAdapter(
+                    ctrl.getDbType(), ctrl.getHost(), ctrl.getPort(), dbName,
+                    ctrl.getUsername(), ctrl.getPassword());
+            if (db == null) {
+                return;
+            }
+            try {
+                List<String> schemas = db.getSchemas();
+                if (schemas != null) {
+                    for (String schema : schemas) {
+                        TreeItem<String> schemaItem = new TreeItem<>(schema, createIcon(schemaIcon));
+                        List<String> tables = db.getTables(schema);
+                        if (tables != null) {
+                            for (String table : tables) {
+                                schemaItem.getChildren().add(new TreeItem<>(table, createIcon(tableIcon)));
+                            }
+                        }
+                        children.add(schemaItem);
+                    }
+                    expand = true;
+                }
+            } finally {
+                db.close();
+            }
+        }
+
+        final boolean expandTree = expand;
+        Platform.runLater(() -> {
+            dbItem.getChildren().clear();
+            dbItem.getChildren().addAll(children);
+            dbItem.setExpanded(expandTree);
+        });
+    }
+
+    /** 后台取数 + FX 线程渲染表格，避免 UI 线程执行数据库查询。 */
+    private void showTableData(String dbName, String schema, String table) {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    List<String> columnNames = new ArrayList<>();
+                    List<List<Object>> rows = new ArrayList<>();
+
+                    if ("Redis".equalsIgnoreCase(ctrl.getDbType())) {
+                        redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
+                        try {
+                            List<String> vals = db.getKeyPreview(table);
+                            columnNames = List.of("Value");
+                            for (String v : vals) {
+                                List<Object> r = new ArrayList<>();
+                                r.add(v);
+                                rows.add(r);
+                            }
+                        } finally {
+                            db.close();
+                        }
+                    } else {
+                        DatabaseAdapter db = DatabaseFactory.createSqlAdapter(
+                                ctrl.getDbType(), ctrl.getHost(), ctrl.getPort(), dbName,
+                                ctrl.getUsername(), ctrl.getPassword());
+                        if (db == null) {
+                            return null;
+                        }
+                        try {
+                            rows = db.getTopRows(schema, table, 500);
+                            columnNames = db.getColumnNames(schema, table);
+                        } finally {
+                            db.close();
+                        }
+                    }
+
+                    final List<String> cols = columnNames;
+                    final List<List<Object>> data = rows;
+                    Platform.runLater(() -> renderTable(cols, data));
+                } catch (Exception ex) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 加载表数据失败: " + ex.getMessage() + "\n"));
+                }
+                return null;
+            }
+        };
+        WORKER.execute(task);
+    }
+
+    /** 纯 UI 渲染：由 FX 线程调用。 */
+    private void renderTable(List<String> columnNames, List<List<Object>> rows) {
+        tableView.getColumns().clear();
+        tableView.getItems().clear();
+        if (rows == null || rows.isEmpty()) {
+            return;
         }
 
         if (columnNames == null || columnNames.isEmpty()) {
@@ -611,11 +581,11 @@ public class panel {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? "" : item);
                     setAlignment(Pos.CENTER);
-                    setFont(Font.font("Consolas", 16));
+                    setFont(Font.font("Consolas", 12));
                 }
             });
 
-            column.setStyle("-fx-alignment: CENTER; -fx-font-size: 16px;");
+            column.setStyle("-fx-alignment: CENTER;");
 
             tableView.getColumns().add(column);
         }
@@ -629,22 +599,24 @@ public class panel {
         }
 
         tableView.getColumns().forEach(col -> {
+            // 列宽按内容自适应，但设上限/下限，避免单列过宽挤压其他列
+            col.setMinWidth(70);
             col.setPrefWidth(20);
             double max = 0;
             Text tmp = new Text(col.getText());
-            tmp.setFont(Font.font("Consolas", 16));
-            max = tmp.getLayoutBounds().getWidth() + 20;
+            tmp.setFont(Font.font("Consolas", 12));
+            max = tmp.getLayoutBounds().getWidth() + 24;
 
             for (ObservableList<String> rowData : tableView.getItems()) {
                 String cellText = rowData.get(tableView.getColumns().indexOf(col));
                 if (cellText != null) {
                     tmp.setText(cellText);
-                    tmp.setFont(Font.font("Consolas", 16));
-                    double width = tmp.getLayoutBounds().getWidth() + 20;
+                    tmp.setFont(Font.font("Consolas", 12));
+                    double width = tmp.getLayoutBounds().getWidth() + 24;
                     if (width > max) max = width;
                 }
             }
-            col.setPrefWidth(max);
+            col.setPrefWidth(Math.min(max, 320));
         });
     }
 
@@ -661,7 +633,7 @@ public class panel {
     private void executeCmdButton() {
         String dbType = ctrl.getDbType();
         if (dbType == null || dbType.trim().isEmpty()) {
-            logTextArea.appendText("[!] ⚠️未选择数据库类型！\n");
+            logTextArea.appendText("[!] 未选择数据库类型！\n");
             return;
         }
 
@@ -692,29 +664,32 @@ public class panel {
 
                     if ("PostgreSQL".equalsIgnoreCase(dbType)) {
                         psql db = new psql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                        sql = psql.exCmd(command.trim(), execType.trim());
-                        if (sql.isEmpty()) {
-                            Platform.runLater(() -> logTextArea.appendText("[!] ❌SQL 生成失败！\n"));
-                            db.close();
-                            return null;
-                        }
-
-                        results = db.executeSQL(sql);
-                        db.close();
-                    } else if ("MySQL".equalsIgnoreCase(dbType)) {
-                        mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                        if (execType != null && "SQL".equalsIgnoreCase(execType.trim())) {
-                            sql = mysql.exCmd(execType.trim(), command.trim());
+                        try {
+                            sql = psql.exCmd(command.trim(), execType.trim());
                             if (sql.isEmpty()) {
                                 Platform.runLater(() -> logTextArea.appendText("[!] ❌SQL 生成失败！\n"));
-                                db.close();
                                 return null;
                             }
                             results = db.executeSQL(sql);
-                        } else {
-                            results = db.executeCommandWithUdfFallback(command.trim());
+                        } finally {
+                            db.close();
                         }
-                        db.close();
+                    } else if ("MySQL".equalsIgnoreCase(dbType)) {
+                        mysql db = new mysql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
+                        try {
+                            if (execType != null && "SQL".equalsIgnoreCase(execType.trim())) {
+                                sql = mysql.exCmd(execType.trim(), command.trim());
+                                if (sql.isEmpty()) {
+                                    Platform.runLater(() -> logTextArea.appendText("[!] ❌SQL 生成失败！\n"));
+                                    return null;
+                                }
+                                results = db.executeSQL(sql);
+                            } else {
+                                results = db.executeCommandWithUdfFallback(command.trim());
+                            }
+                        } finally {
+                            db.close();
+                        }
                     } else if ("MSSQL".equalsIgnoreCase(dbType)) {
                         sql = mssql.exCmd(execType.trim(), command.trim());
                         if (sql.isEmpty()) {
@@ -723,26 +698,32 @@ public class panel {
                         }
 
                         mssql db = new mssql(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                        results = db.executeSQL(sql);
-                        db.close();
+                        try {
+                            results = db.executeSQL(sql);
+                        } finally {
+                            db.close();
+                        }
                     } else if ("Redis".equalsIgnoreCase(dbType)) {
                         redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-                        results = db.exCmd(execType.trim(), command.trim());
-                        db.close();
+                        try {
+                            results = db.exCmd(execType.trim(), command.trim());
+                        } finally {
+                            db.close();
+                        }
                     }
 
                     String finalResults = results;
                     Platform.runLater(() -> {
-                        logTextArea.appendText("[+] 🚀 Results: \n" + finalResults + "\n");
+                        logTextArea.appendText("[+] Results: \n" + finalResults + "\n");
                     });
                 } catch (Exception e) {
-                    Platform.runLater(() -> logTextArea.appendText("[!] \uD83D\uDCA5" + e.getMessage() + "\n"));
+                    Platform.runLater(() -> logTextArea.appendText("[!] " + e.getMessage() + "\n"));
                 }
                 return null;
             }
         };
 
-        new Thread(task).start();
+        WORKER.execute(task);
     }
 
 
@@ -760,7 +741,7 @@ public class panel {
                     String results = "";
                     String dbType = ctrl.getDbType();
                     if (dbType == null || dbType.trim().isEmpty()) {
-                        Platform.runLater(() -> logTextArea.appendText("[!] ⚠️未选择数据库类型！\n"));
+                        Platform.runLater(() -> logTextArea.appendText("[!] 未选择数据库类型！\n"));
                         return null;
                     }
 
@@ -798,14 +779,14 @@ public class panel {
                     }
 
                     final String out = results;
-                    Platform.runLater(() -> logTextArea.appendText("[+] 🚀 Results: \n" + out + "\n"));
+                    Platform.runLater(() -> logTextArea.appendText("[+] Results: \n" + out + "\n"));
                 } catch (Exception e) {
-                    Platform.runLater(() -> logTextArea.appendText("[!] \uD83D\uDCA5读取文件失败: " + e.getMessage() + "\n"));
+                    Platform.runLater(() -> logTextArea.appendText("[!] 读取文件失败: " + e.getMessage() + "\n"));
                 }
                 return null;
             }
         };
-        new Thread(task).start();
+        WORKER.execute(task);
     }
 
     @FXML
@@ -816,7 +797,7 @@ public class panel {
                 Platform.runLater(() -> logTextArea.appendText("[+] 请在 VPS 上查看反弹 Shell 状态\n[!] 注意：反弹后其他功能可能受影响\n"));
                 String dbType = ctrl.getDbType();
                 if (dbType == null || dbType.trim().isEmpty()) {
-                    Platform.runLater(() -> logTextArea.appendText("[!] ⚠️未选择数据库类型！\n"));
+                    Platform.runLater(() -> logTextArea.appendText("[!] 未选择数据库类型！\n"));
                     return null;
                 }
 
@@ -868,7 +849,7 @@ public class panel {
                 return null;
             }
         };
-        new Thread(task).start();
+        WORKER.execute(task);
     }
 
     private static int safeParsePort(String s) {
@@ -895,13 +876,107 @@ public class panel {
 
     @FXML
     private void loadRedisModuleButton() {
-        try {
-            redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
-            String result = db.autoLoadModuleFromResources();
-            db.close();
-            logTextArea.appendText(result + "\n");
-        } catch (Exception e) {
-            logTextArea.appendText("[!] \uD83D\uDCA5模块加载失败: " + e.getMessage() + "\n");
-        }
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    redis db = new redis(ctrl.getHost(), ctrl.getPort(), ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
+                    String result;
+                    try {
+                        result = db.autoLoadModuleFromResources();
+                    } finally {
+                        db.close();
+                    }
+                    String out = result;
+                    Platform.runLater(() -> logTextArea.appendText(out + "\n"));
+                } catch (Exception e) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 模块加载失败: " + e.getMessage() + "\n"));
+                }
+                return null;
+            }
+        };
+        WORKER.execute(task);
+    }
+
+    /** 合规基线检查：后台扫描 -> 日志摘要 + 生成 HTML 报告并打开。 */
+    @FXML
+    private void runComplianceCheck() {
+        if (ctrl == null) return;
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    long t0 = System.currentTimeMillis();
+                    List<Finding> findings = BaselineScanner.scan(
+                            ctrl.getDbType(), ctrl.getHost(), ctrl.getPort(),
+                            ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
+                    Path report = ComplianceReport.generate(
+                            ctrl.getDbType(), ctrl.getHost(), ctrl.getPort(),
+                            ctrl.getDatabase(), ctrl.getUsername(), findings);
+
+                    StringBuilder log = new StringBuilder();
+                    log.append("[+] ").append(util.I18n.t("compliance.done",
+                            findings.size(), System.currentTimeMillis() - t0)).append("\n");
+                    for (Finding f : findings) {
+                        log.append("    [").append(f.severity().label()).append("] ")
+                                .append(f.id()).append(" - ").append(f.title()).append("\n");
+                    }
+                    log.append("[+] ").append(util.I18n.t("compliance.report",
+                            report.toAbsolutePath())).append("\n");
+                    String out = log.toString();
+                    Platform.runLater(() -> {
+                        logTextArea.appendText(out);
+                        complianceHintLabel.setText(util.I18n.t("compliance.report",
+                                report.getFileName()));
+                    });
+                    try {
+                        Desktop.getDesktop().browse(report.toUri());
+                    } catch (Exception ignored) {
+                    }
+                } catch (Exception e) {
+                    Platform.runLater(() -> logTextArea.appendText("[!] 合规检查失败: " + e.getMessage() + "\n"));
+                }
+                return null;
+            }
+        };
+        WORKER.execute(task);
+    }
+
+    /** 通用 SQL 执行：PostgreSQL / MySQL / MSSQL（通过统一适配器；Redis 无 SQL 面板）。 */
+    public void btnExecuteSql() {
+        if (ctrl == null) return;
+        String sql = sqlTextArea.getText();
+        String dbType = ctrl.getDbType();
+
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    String results;
+                    if ("Redis".equalsIgnoreCase(dbType)) {
+                        results = "[!] Redis 不支持 SQL 面板，请使用 Redis 功能页";
+                    } else {
+                        DatabaseAdapter db = DatabaseFactory.createSqlAdapter(
+                                dbType, ctrl.getHost(), ctrl.getPort(),
+                                ctrl.getDatabase(), ctrl.getUsername(), ctrl.getPassword());
+                        if (db == null) {
+                            results = "[!] 不支持的数据库类型: " + dbType;
+                        } else {
+                            try {
+                                results = db.executeSQL(sql);
+                            } finally {
+                                db.close();
+                            }
+                        }
+                    }
+                    String finalResults = results;
+                    Platform.runLater(() -> logTextArea.appendText("[+] Results: \n" + finalResults + "\n"));
+                } catch (Exception e) {
+                    Platform.runLater(() -> logTextArea.appendText("[!]  执行失败: " + e.getMessage() + "\n"));
+                }
+                return null;
+            }
+        };
+        WORKER.execute(task);
     }
 }

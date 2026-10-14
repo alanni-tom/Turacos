@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master, dev ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # 供应链完整性：jar 内的 UDF/Redis 二进制必须与清单哈希一致
+      - name: Verify resource integrity
+        shell: powershell
+        run: |
+          .\scripts\verify-resources.ps1
+
+      - name: Compile & test
+        run: .\mvnw.cmd -B test
+
+      - name: Package
+        run: .\mvnw.cmd -B -DskipTests package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Turacos-windows
+          path: target/Turacos-1.0-SNAPSHOT.jar
+          if-no-files-found: error

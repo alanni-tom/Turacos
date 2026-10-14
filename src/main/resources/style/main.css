@@ -1,106 +1,203 @@
+﻿/* ============================================================
+   Turacos Login — 基础 + 亮色主题（默认）
+   深色主题由 theme-dark.css 覆盖，切换逻辑见 ui.ThemeManager
+   亮色：浅灰蓝底 / 白色表面 / 绿色点缀（品牌蕉鹃绿）
+   ============================================================ */
+
 .root {
-    -fx-background-color: #f9f8fb;
-    -fx-font-family: 'IBM Plex Sans', sans-serif;
-    -fx-font-size: 14px;
+    -fx-font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    -fx-font-size: 13px;
+    -fx-accent: #16a34a;
+    -fx-focus-color: #16a34a;
+    -fx-faint-focus-color: transparent;
 }
 
-.left ListView {
+.login-root {
+    -fx-background-color: #f4f6fa;
+}
+
+/* ---------------- 左侧品牌栏 ---------------- */
+
+.brand-panel {
     -fx-background-color: #ffffff;
-    -fx-border-color: #ebeff6;
-    -fx-border-radius: 8px;
-    -fx-padding: 5px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 2, 4);
+    -fx-background-radius: 0;
+    -fx-border-color: #16a34a #e4e7ef transparent transparent;
+    -fx-border-width: 3px 1px 0 0;
+    -fx-spacing: 8;
 }
 
-.Label[contentDisplay="CENTER"] {
-    -fx-text-fill: #5d5b8d;
-    -fx-font-weight: bold;
-    -fx-font-size: 26px;
-    -fx-padding: 20px 0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 3, 0, 1, 1);
+.brand-title {
+    -fx-text-fill: #1f2937;
+    -fx-font-family: "Consolas", "JetBrains Mono", "Courier New", monospace;
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
 }
 
-.HBox Label {
-    -fx-text-fill: #6f6f83;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
+.brand-sub {
+    -fx-text-fill: #16a34a;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
 }
 
-.TextField, .PasswordField, .ComboBox {
+.saved-title {
+    -fx-text-fill: #15803d;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-padding: 6px 0 2px 0;
+}
+
+.brand-version {
+    -fx-text-fill: #9aa5b5;
+    -fx-font-size: 10px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+}
+
+.saved-list {
     -fx-background-color: #ffffff;
-    -fx-border-color: #ebeff6;
-    -fx-border-radius: 8px;
+    -fx-background-radius: 6px;
+    -fx-border-color: #e4e7ef;
+    -fx-border-radius: 6px;
+    -fx-padding: 4px;
+}
+
+.saved-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 12px;
+    -fx-padding: 7px 10px;
+    -fx-background-radius: 4px;
+}
+
+.saved-list .list-cell:hover {
+    -fx-background-color: #f1f4fb;
+}
+
+.saved-list .list-cell:selected {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #15803d;
+    -fx-font-weight: 600;
+}
+
+.saved-empty {
+    -fx-text-fill: #9aa5b5;
+    -fx-font-size: 11px;
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+}
+
+/* ---------------- 右侧表单 ---------------- */
+
+.form-panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0;
+    -fx-border-color: #e4e7ef;
+    -fx-border-width: 0 0 0 1px;
+    -fx-spacing: 10;
+}
+
+.form-title {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 17px;
+    -fx-font-weight: 700;
+}
+
+.form-sub {
+    -fx-text-fill: #8a94a8;
+    -fx-font-size: 11px;
+}
+
+.form-row {
+    -fx-padding: 2px 0;
+}
+
+.form-label {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.form-input {
+    -fx-background-color: #f7f8fc;
+    -fx-background-radius: 6px;
+    -fx-border-color: #dfe3ee;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
     -fx-padding: 8px 12px;
-    -fx-font-size: 14px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 2, 0, 1, 1);
+    -fx-font-size: 13px;
+    -fx-text-fill: #1f2937;
 }
 
-.TextField:focused, .PasswordField:focused, .ComboBox:focused {
-    -fx-border-color: #a0a1f4;
-    -fx-background-color: #f0f2ff;
-    -fx-effect: dropshadow(gaussian, #a0a1f4, 3, 0, 0, 1);
+.form-input:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #16a34a;
+    -fx-effect: dropshadow(gaussian, rgba(22, 163, 74, 0.18), 8, 0, 0, 1);
 }
 
-.Button {
-    -fx-background-color: #c5a5f7;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-border-radius: 12px;
+.form-input .list-cell {
+    -fx-text-fill: #1f2937;
+}
+
+.primary-button {
+    -fx-background-color: #16a34a;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 9px 20px;
     -fx-cursor: hand;
-    -fx-padding: 10px 22px;
-    -fx-transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
-.Button:hover {
-    -fx-background-color: #a086e4;
-    -fx-transform: scale(1.05);
+.primary-button:hover {
+    -fx-background-color: #159042;
 }
 
-.Button:pressed {
-    -fx-background-color: #7f6ac2;
-    -fx-transform: scale(0.98);
+.primary-button:pressed {
+    -fx-background-color: #12813c;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
 }
 
-.ImageView {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 2, 3);
+.ghost-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #15803d;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 9px 16px;
+    -fx-cursor: hand;
 }
 
-.ComboBox {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ebeff6;
-    -fx-border-radius: 8px;
-    -fx-font-size: 14px;
+.ghost-button:hover {
+    -fx-border-color: #16a34a;
+    -fx-text-fill: #166534;
+    -fx-background-color: #f0fdf4;
 }
 
-.ComboBox:focused {
-    -fx-border-color: #a0a1f4;
-    -fx-background-color: #f0f2ff;
+.ghost-button:pressed {
+    -fx-background-color: #dcfce7;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
 }
 
-.TextField:focused, .PasswordField:focused {
-    -fx-background-color: #f0f2ff;
-    -fx-border-color: #a0a1f4;
-    -fx-effect: dropshadow(gaussian, #a0a1f4, 2, 0, 0, 1);
+/* 主题切换小按钮（标题行右侧） */
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6px;
+    -fx-border-color: #dfe3ee;
+    -fx-border-radius: 6px;
+    -fx-padding: 5px 12px;
+    -fx-cursor: hand;
 }
 
-.Button {
-    -fx-background-color: #c5a5f7;
-    -fx-background-insets: 0, 1, 2;
-    -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
-    -fx-padding: 10px 22px;
-}
-
-.left {
-    -fx-background-color: #f9f8fb;
-    -fx-padding: 10px;
-    -fx-border-radius: 8px;
-}
-
-.VBox {
-    -fx-background-color: #ffffff;
-    -fx-border-radius: 12px;
-    -fx-padding: 25px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 12, 0, 2, 5);
+.theme-toggle:hover {
+    -fx-border-color: #16a34a;
+    -fx-text-fill: #15803d;
 }

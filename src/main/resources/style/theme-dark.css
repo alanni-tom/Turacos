@@ -1,0 +1,419 @@
+/* ============================================================
+   Turacos theme-dark.css — 深色主题覆盖层
+   ------------------------------------------------------------------
+   加载方式：ThemeManager 在 Scene 上添加/移除本文件，
+   与 main.css / panel.css 选择器同名，后加载者覆盖颜色。
+   配色：当代深色审美 —— 柔灰蓝 #20242e 系（非纯黑），
+   表面逐级提亮（#262c38 / #2b3140），终端绿 #4ade80 强调。
+   ============================================================ */
+
+.root {
+    -fx-accent: #4ade80;
+    -fx-focus-color: #4ade80;
+}
+
+/* ============ 登录页 ============ */
+
+.login-root {
+    -fx-background-color: #20242e;
+}
+
+.brand-panel {
+    -fx-background-color: #262c38;
+    -fx-border-color: #4ade80 #343c50 transparent transparent;
+}
+
+.brand-title {
+    -fx-text-fill: #e6eaf2;
+}
+
+.brand-sub {
+    -fx-text-fill: #4ade80;
+}
+
+.saved-title {
+    -fx-text-fill: #4ade80;
+}
+
+.brand-version {
+    -fx-text-fill: #6b7688;
+}
+
+.saved-list {
+    -fx-background-color: #20242e;
+    -fx-border-color: #3a4152;
+}
+
+.saved-list .list-cell {
+    -fx-text-fill: #aeb9cc;
+}
+
+.saved-list .list-cell:hover {
+    -fx-background-color: #313a4d;
+}
+
+.saved-list .list-cell:selected {
+    -fx-background-color: #223c31;
+    -fx-text-fill: #6ee7a8;
+}
+
+.saved-empty {
+    -fx-text-fill: #6b7688;
+}
+
+.form-panel {
+    -fx-background-color: #20242e;
+    -fx-border-color: #343c50;
+}
+
+.form-title {
+    -fx-text-fill: #e6eaf2;
+}
+
+.form-sub {
+    -fx-text-fill: #7d899d;
+}
+
+.form-label {
+    -fx-text-fill: #98a2b3;
+}
+
+.form-input {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #e6eaf2;
+}
+
+.form-input:focused {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #4ade80;
+    -fx-effect: dropshadow(gaussian, rgba(74, 222, 128, 0.20), 8, 0, 0, 1);
+}
+
+.form-input .list-cell {
+    -fx-text-fill: #e6eaf2;
+}
+
+.primary-button {
+    -fx-background-color: #2ea043;
+    -fx-text-fill: #05130a;
+}
+
+.primary-button:hover {
+    -fx-background-color: #35b859;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #26903b;
+}
+
+.ghost-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6ee7a8;
+    -fx-border-color: #3f4a5f;
+}
+
+.ghost-button:hover {
+    -fx-border-color: #4ade80;
+    -fx-text-fill: #9ff0c6;
+    -fx-background-color: #223c31;
+}
+
+.ghost-button:pressed {
+    -fx-background-color: #1b2f27;
+}
+
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-text-fill: #98a2b3;
+    -fx-border-color: #3a4152;
+}
+
+.theme-toggle:hover {
+    -fx-border-color: #4ade80;
+    -fx-text-fill: #9ff0c6;
+}
+
+/* ============ 主面板 ============ */
+
+.anchor-pane,
+.app-root {
+    -fx-background-color: #20242e;
+}
+
+.app-header {
+    -fx-background-color: #262c38;
+    -fx-border-color: transparent transparent #2ea043 transparent;
+}
+
+.app-brand {
+    -fx-text-fill: #e6eaf2;
+}
+
+.app-subtitle,
+.app-hint {
+    -fx-text-fill: #7d899d;
+}
+
+.side-panel {
+    -fx-background-color: #20242e;
+    -fx-border-color: #343c50;
+}
+
+.split-pane > .split-pane-divider,
+.main-split > .split-pane-divider {
+    -fx-background-color: #343c50;
+}
+
+.split-pane > .split-pane-divider:hover,
+.main-split > .split-pane-divider:hover {
+    -fx-background-color: #2ea043;
+}
+
+.tree-view .tree-cell,
+.db-tree .tree-cell {
+    -fx-text-fill: #aeb9cc;
+}
+
+.tree-view .tree-cell:hover,
+.db-tree .tree-cell:hover {
+    -fx-background-color: #313a4d;
+    -fx-text-fill: #dde3ee;
+}
+
+.tree-view .tree-cell:selected,
+.db-tree .tree-cell:selected {
+    -fx-background-color: #223c31;
+    -fx-text-fill: #6ee7a8;
+}
+
+.tree-view .arrow,
+.db-tree .arrow {
+    -fx-background-color: #5a6b85;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #262c38;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #8b96a9;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #313a4d;
+    -fx-text-fill: #c2cbd9;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #2b3140;
+    -fx-border-color: #4ade80 #3a4152 transparent #3a4152;
+    -fx-text-fill: #6ee7a8;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #262c38;
+    -fx-border-color: #3a4152;
+}
+
+.button {
+    -fx-background-color: #2ea043;
+    -fx-text-fill: #05130a;
+}
+
+.button:hover {
+    -fx-background-color: #35b859;
+}
+
+.button:pressed {
+    -fx-background-color: #26903b;
+}
+
+.table-view {
+    -fx-background-color: #20242e;
+    -fx-border-color: #3a4152;
+}
+
+.table-view .column-header {
+    -fx-background-color: #2b3140;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #98a2b3;
+}
+
+.table-view .filler {
+    -fx-background-color: #2b3140;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #20242e;
+    -fx-border-color: #2e3546;
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #262c38;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #2f3a4e;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #223c31;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #6ee7a8;
+}
+
+.table-view .table-cell {
+    -fx-border-color: #2e3546;
+    -fx-text-fill: #c8d0de;
+}
+
+.text-area {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+}
+
+.text-area .content {
+    -fx-background-color: #262d3b;
+}
+
+.text-area:focused {
+    -fx-border-color: #4ade80;
+}
+
+.sql-text-area {
+    -fx-text-fill: #c8d0de;
+}
+
+.log-text-area {
+    -fx-background-color: #1a1f29;
+    -fx-text-fill: #8fa3b8;
+    -fx-border-color: #343c50;
+}
+
+.log-text-area .content {
+    -fx-background-color: #1a1f29;
+}
+
+.log-text-area:focused {
+    -fx-border-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #45506a;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #566385;
+}
+
+.psql-pane {
+    -fx-background-color: #262c38;
+    -fx-border-color: #3a4152;
+}
+
+.psql-label {
+    -fx-text-fill: #98a2b3;
+}
+
+.psql-choicebox {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+}
+
+.psql-choicebox .list-cell {
+    -fx-text-fill: #c8d0de;
+}
+
+.psql-textfield {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #c8d0de;
+}
+
+.psql-textfield:focused {
+    -fx-border-color: #4ade80;
+}
+
+.psql-button {
+    -fx-background-color: #2ea043;
+    -fx-text-fill: #05130a;
+}
+
+.psql-button:hover {
+    -fx-background-color: #35b859;
+}
+
+.psql-button:pressed {
+    -fx-background-color: #26903b;
+}
+
+.psql-output {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #c8d0de;
+}
+
+.psql-output:focused {
+    -fx-border-color: #4ade80;
+}
+
+.psql-section {
+    -fx-background-color: #2b3140;
+    -fx-border-color: #3a4152;
+}
+
+.psql-section-title {
+    -fx-text-fill: #e6eaf2;
+}
+
+.psql-shell-section {
+    -fx-background-color: #262c38;
+    -fx-border-color: #3a4152;
+}
+
+.psql-shell-output {
+    -fx-background-color: #262d3b;
+    -fx-border-color: #3a4152;
+    -fx-text-fill: #c8d0de;
+}
+
+.psql-shell-button {
+    -fx-background-color: #2ea043;
+    -fx-text-fill: #05130a;
+}
+
+.psql-shell-button:hover {
+    -fx-background-color: #35b859;
+}
+
+.psql-shell-button:pressed {
+    -fx-background-color: #26903b;
+}
+
+.vbox-container {
+    -fx-background-color: #262c38;
+    -fx-border-color: #3a4152;
+}
+
+.tool-button {
+    -fx-background-color: #262c38;
+    -fx-text-fill: #aeb9cc;
+    -fx-border-color: #3a4152;
+}
+
+.tool-button:hover {
+    -fx-background-color: #313a4d;
+    -fx-text-fill: #dde3ee;
+}
+
+.theme-toggle {
+    -fx-background-color: transparent;
+    -fx-text-fill: #98a2b3;
+    -fx-border-color: #3a4152;
+}
+
+.theme-toggle:hover {
+    -fx-border-color: #4ade80;
+    -fx-text-fill: #9ff0c6;
+}

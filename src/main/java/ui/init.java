@@ -15,12 +15,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.collections.FXCollections;
+import javafx.beans.binding.Bindings;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.Objects;
 
 public class init {
@@ -43,6 +42,10 @@ public class init {
     private TextField databaseTextField;
     @FXML
     private ListView<DatabaseConfig> savedConfigsList;
+    @FXML
+    private Label savedEmptyLabel;
+    @FXML
+    private Button themeButton;
 
     private DatabaseConfigDAO dao = new DatabaseConfigDAO();
     private final javafx.beans.property.BooleanProperty showPassword = new javafx.beans.property.SimpleBooleanProperty(false);
@@ -86,7 +89,14 @@ public class init {
             DatabaseConfig cfg = savedConfigsList.getSelectionModel().getSelectedItem();
             if (cfg != null) {
                 dao.deleteConfig(cfg.getDbType(), cfg.getHost(), cfg.getPort(), cfg.getDatabase());
-                savedConfigsList.setItems(FXCollections.observableArrayList(dao.getAllConfigs()));
+        savedConfigsList.setItems(FXCollections.observableArrayList(dao.getAllConfigs()));
+
+        // 空列表时显示占位提示，避免大块空白
+        savedEmptyLabel.visibleProperty().bind(Bindings.isEmpty(savedConfigsList.getItems()));
+        savedEmptyLabel.managedProperty().bind(Bindings.isEmpty(savedConfigsList.getItems()));
+
+        // 主题切换按钮状态
+        themeButton.setText(ThemeManager.isDark() ? "浅色" : "深色");
             }
         });
         ctx.getItems().addAll(deleteItem);
@@ -126,7 +136,8 @@ public class init {
     }
 
 
-    private void loadPanel(ActionEvent event, controllers ctrl) {
+    /** 统一的主面板加载入口：可选的登录窗口在面板显示后关闭。 */
+    private void loadPanel(controllers ctrl, Stage loginStage) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/panel.fxml"));
             Parent root = loader.load();
@@ -135,21 +146,20 @@ public class init {
             panelCtrl.setControllers(ctrl);
 
             Stage panelStage = new Stage();
-            panelStage.setTitle("Turacos V1.4.3 By: Alanni");
-            panelStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream(("/images/ico.png")))));
-            panelStage.setScene(new Scene(root, 900, 600));
+            panelStage.setTitle("Turacos V1.4.5 By: Alanni");
+            panelStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/ico.png"))));
+            panelStage.setResizable(false);
+            Scene panelScene = new Scene(root, 980, 640);
+            ThemeManager.apply(panelScene);
+            panelStage.setScene(panelScene);
             panelStage.show();
 
-            Stage loginStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            loginStage.close();
-
+            if (loginStage != null) {
+                loginStage.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "加载主界面失败!", ButtonType.OK).show();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -171,7 +181,8 @@ public class init {
             controllers ctrl = new controllers();
             ctrl.setDatabaseInfo(dbType, host, port, username, password, database);
 
-            loadPanel(event, ctrl);
+            Stage loginStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            loadPanel(ctrl, loginStage);
 
         } else {
             new Alert(Alert.AlertType.ERROR, "Connection or Open Failed!", ButtonType.OK).show();
@@ -244,30 +255,7 @@ public class init {
         controllers ctrl = new controllers();
         ctrl.setDatabaseInfo(cfg.getDbType(), cfg.getHost(), cfg.getPort(), cfg.getUsername(), cfg.getPassword(), cfg.getDatabase());
 
-        loadPanel(ctrl);
-    }
-
-    private void loadPanel(controllers ctrl) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/panel.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load(), 900, 600));
-            stage.setTitle("Turacos Ver_1.0 By: Alanni");
-            stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/ico.png"))));
-            stage.setResizable(false);
-            panel panelCtrl = loader.getController();
-
-            panelCtrl.setControllers(ctrl);
-
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "加载主界面失败!").show();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        loadPanel(ctrl, null);
     }
 
     @FXML
@@ -275,6 +263,15 @@ public class init {
         showPassword.set(!showPassword.get());
         if (togglePasswordImage != null) {
             togglePasswordImage.setImage(showPassword.get() ? eyeOpen : eyeClosed);
+        }
+    }
+
+    /** 切换亮/暗主题并同步按钮文案。 */
+    @FXML
+    private void onToggleTheme() {
+        boolean dark = ThemeManager.toggle();
+        if (themeButton != null) {
+            themeButton.setText(dark ? "浅色" : "深色");
         }
     }
 

@@ -1,9 +1,7 @@
 package controller;
 
-import database.psql;
-import database.mysql;
-import database.mssql;
-import database.redis;
+import database.DatabaseAdapter;
+import database.DatabaseFactory;
 
 import java.util.List;
 
@@ -57,27 +55,22 @@ public class controllers {
     }
 
     /**
-     * 获取数据库列表
+     * 获取数据库列表（通过 {@link DatabaseFactory} 统一创建适配器）。
+     * Redis 无数据库列表概念，返回占位项。
      */
     public List<String> loadDatabases() {
-        if ("PostgreSQL".equalsIgnoreCase(this.dbType)) {
-            psql db = new psql(host, port, database, username, password);
-            db.close();
-            return db.getDatabases();
-        } else if ("MySQL".equalsIgnoreCase(this.dbType)) {
-            mysql db = new mysql(host, port, database, username, password);
-            db.close();
-            return db.getDatabases();
-        } else if ("MSSQL".equalsIgnoreCase(this.dbType)) {
-            mssql db = new mssql(host, port, database, username, password);
-            db.close();
-            return db.getDatabases();
-        } else if ("Redis".equalsIgnoreCase(this.dbType)) {
-            // Redis 无真正“数据库列表”，此处展示一个占位项
+        if ("Redis".equalsIgnoreCase(this.dbType)) {
             return List.of("Redis");
         }
-        return List.of();
+        DatabaseAdapter db = DatabaseFactory.createSqlAdapter(
+                dbType, host, port, database, username, password);
+        if (db == null) {
+            return List.of();
+        }
+        try {
+            return db.getDatabases();
+        } finally {
+            db.close();
+        }
     }
-
-
 }

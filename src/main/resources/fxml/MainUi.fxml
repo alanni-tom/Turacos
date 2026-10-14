@@ -11,158 +11,132 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="361.0" prefWidth="592.0" style="-fx-background-color: #cde5ea;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.init">
-    <left>
-        <VBox prefHeight="361.0" prefWidth="177.0" style="-fx-background-color: #cde5ea;" BorderPane.alignment="CENTER">
-            <children>
-                <ListView fx:id="savedConfigsList" prefHeight="362.0" prefWidth="177.0" style=" -fx-background-color: #e2dbb4; -fx-control-inner-background: #e2dbb4; -fx-control-inner-background-alt: #e2dbb4; -fx-border-color: #D2B48C;         -fx-border-width: 1px;         -fx-border-radius: 5px;         -fx-background-radius: 5px;         -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 4, 0, 0, 2);     ">
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefHeight="470.0" prefWidth="740.0" styleClass="login-root"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ui.init">
+    <stylesheets>
+        <URL value="@/style/main.css"/>
+    </stylesheets>
+
+    <!-- ============ 左侧：品牌 + 已保存连接 ============ -->
+    <VBox prefWidth="255.0" styleClass="brand-panel">
+        <padding>
+            <Insets bottom="20.0" left="22.0" right="22.0" top="34.0"/>
+        </padding>
+        <children>
+            <ImageView fitHeight="64.0" fitWidth="64.0" preserveRatio="true" smooth="true">
+                <image>
+                    <Image url="@../images/ico.png"/>
+                </image>
+            </ImageView>
+            <Label styleClass="brand-title" text="TURACOS"/>
+            <Label styleClass="brand-sub" text="数据库安全评估工具"/>
+            <Label styleClass="saved-title" text="已保存的连接"/>
+            <StackPane VBox.vgrow="ALWAYS" minHeight="150.0">
+                <ListView fx:id="savedConfigsList" minHeight="150.0" prefHeight="230.0"
+                          styleClass="saved-list">
                     <cursor>
-                        <Cursor fx:constant="HAND" />
+                        <Cursor fx:constant="HAND"/>
                     </cursor>
                 </ListView>
-            </children>
-        </VBox>
-    </left>
-    <center>
-        <VBox alignment="CENTER" maxWidth="500" prefHeight="200.0" prefWidth="100.0" spacing="20" BorderPane.alignment="CENTER">
-            <stylesheets>
-                <URL value="@/style/main.css" />
-            </stylesheets>
-            <padding>
-                <Insets bottom="20" left="20" right="20" top="20" />
-            </padding>
-            <children>
-                <GridPane alignment="CENTER" hgap="15" prefHeight="53.0" prefWidth="400.0" vgap="15">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="54.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="203.0" minWidth="10.0" prefWidth="58.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="356.0" minWidth="10.0" prefWidth="256.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints maxHeight="95.0" minHeight="10.0" prefHeight="58.0" valignment="CENTER" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <children>
-                        <ImageView fitHeight="64.0" fitWidth="64.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
-                            <image>
-                                <Image url="@../images/add.png" />
-                            </image>
-                        </ImageView>
-                        <Label contentDisplay="CENTER" prefHeight="53.0" prefWidth="260.0" text="新建数据库连接" textFill="#5e5e5e" GridPane.columnIndex="2">
-                            <font>
-                                <Font name="IBM Plex Mono Text" size="28.0" />
-                            </font>
-                        </Label>
-                    </children>
-                </GridPane>
+                <Label fx:id="savedEmptyLabel" alignment="CENTER" mouseTransparent="true"
+                       styleClass="saved-empty"
+                       text="暂无已保存的配置&#10;连接成功后自动出现在这里"/>
+            </StackPane>
+            <Label styleClass="brand-version" text="V1.4.5 · 本地审计留痕已开启"/>
+        </children>
+    </VBox>
 
-                <GridPane alignment="CENTER" hgap="15" prefHeight="197.0" prefWidth="375.0" vgap="15">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="300.0" minWidth="10.0" prefWidth="150.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints maxHeight="48.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="44.0" minHeight="10.0" prefHeight="40.0" valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="52.0" minHeight="10.0" prefHeight="34.0" valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="38.0" minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="36.0" valignment="CENTER" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <children>
-                        <HBox alignment="CENTER_LEFT" spacing="15">
-                            <Label prefHeight="20.0" prefWidth="120.0" text="选择数据库类型">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-                            <ComboBox fx:id="ComboBox" onAction="#onComboBoxChanged" prefWidth="180.0">
-                                <cursor>
-                                    <Cursor fx:constant="HAND" />
-                                </cursor>
-                            </ComboBox>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="1">
-                            <Label prefHeight="20.0" prefWidth="120.0" text="数据库地址">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-                            <TextField fx:id="hostTextField" prefHeight="25.0" prefWidth="180.0" />
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="2">
-                            <Label prefHeight="20.0" prefWidth="120.0" text="连接用户名">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-                            <TextField fx:id="usernameTextField" prefHeight="25.0" prefWidth="180.0" />
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="3">
-                            <Label prefHeight="20.0" prefWidth="120.0" text="连接密码">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-                            <TextField fx:id="passwordPlainTextField" managed="false" maxHeight="24.0" minHeight="24.0" prefHeight="24.0" prefWidth="150.0" visible="false" />
-                            <PasswordField fx:id="passwordTextField" maxHeight="24.0" minHeight="24.0" prefHeight="24.0" prefWidth="150.0" />
-                            <ImageView fx:id="togglePasswordImage" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#onTogglePasswordVisibility" pickOnBounds="true" preserveRatio="true">
-                                <cursor>
-                                    <Cursor fx:constant="HAND" />
-                                </cursor>
-                            </ImageView>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15" GridPane.rowIndex="4">
-                            <Label prefHeight="20.0" prefWidth="120.0" text="端口">
-                                <font>
-                                    <Font size="14.0" />
-                                </font>
-                            </Label>
-                            <TextField fx:id="portTextField" prefHeight="25.0" prefWidth="180.0" />
-                        </HBox>
-                        <HBox prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="5">
-                            <children>
-                                <Label prefHeight="20.0" prefWidth="134.0" text="数据库">
-                                    <font>
-                                        <Font size="14.0" />
-                                    </font>
-                                </Label>
-                                <TextField fx:id="databaseTextField" prefHeight="23.0" prefWidth="179.0" />
-                            </children>
-                        </HBox>
-                    </children>
-                </GridPane>
-                <GridPane prefHeight="30.0" prefWidth="348.0">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="49.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="136.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="41.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="119.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="47.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                    <children>
-                        <Button mnemonicParsing="false" onAction="#onTestconnection" prefHeight="30.0" prefWidth="114.0" text="测试连接" GridPane.columnIndex="1">
-                            <cursor>
-                                <Cursor fx:constant="HAND" />
-                            </cursor>
-                        </Button>
-                        <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onComboBoxChanged" prefHeight="37.0" prefWidth="118.0" text="保存并打开" GridPane.columnIndex="3">
-                            <cursor>
-                                <Cursor fx:constant="HAND" />
-                            </cursor>
-                        </Button>
-                    </children>
-                </GridPane>
-            </children>
-        </VBox>
-    </center>
-</BorderPane>
+    <!-- ============ 右侧：连接表单 ============ -->
+    <VBox alignment="TOP_LEFT" maxWidth="485.0" prefWidth="485.0" spacing="10"
+          styleClass="form-panel">
+        <padding>
+            <Insets bottom="20.0" left="34.0" right="34.0" top="26.0"/>
+        </padding>
+        <children>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label styleClass="form-title" text="新建数据库连接"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="themeButton" mnemonicParsing="false" onAction="#onToggleTheme"
+                        styleClass="theme-toggle" text="深色">
+                    <cursor>
+                        <Cursor fx:constant="HAND"/>
+                    </cursor>
+                </Button>
+            </HBox>
+            <Label styleClass="form-sub" text="填写目标数据库连接信息，双击左侧配置可快速连接"/>
+
+            <!-- 类型 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="数据库类型"/>
+                <ComboBox fx:id="ComboBox" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="form-input">
+                    <cursor>
+                        <Cursor fx:constant="HAND"/>
+                    </cursor>
+                </ComboBox>
+            </HBox>
+            <!-- 地址 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="数据库地址"/>
+                <TextField fx:id="hostTextField" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                           promptText="127.0.0.1" styleClass="form-input"/>
+            </HBox>
+            <!-- 用户名 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="连接用户名"/>
+                <TextField fx:id="usernameTextField" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                           promptText="root" styleClass="form-input"/>
+            </HBox>
+            <!-- 密码 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="连接密码"/>
+                <TextField fx:id="passwordPlainTextField" managed="false" visible="false"
+                           HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="form-input"/>
+                <PasswordField fx:id="passwordTextField" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                               styleClass="form-input"/>
+                <ImageView fx:id="togglePasswordImage" fitHeight="17.0" fitWidth="17.0"
+                           onMouseClicked="#onTogglePasswordVisibility" pickOnBounds="true"
+                           preserveRatio="true">
+                    <cursor>
+                        <Cursor fx:constant="HAND"/>
+                    </cursor>
+                </ImageView>
+            </HBox>
+            <!-- 端口 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="端口"/>
+                <TextField fx:id="portTextField" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                           promptText="3306" styleClass="form-input"/>
+            </HBox>
+            <!-- 数据库 -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="form-row">
+                <Label prefWidth="86.0" styleClass="form-label" text="数据库"/>
+                <TextField fx:id="databaseTextField" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                           promptText="mysql" styleClass="form-input"/>
+            </HBox>
+
+            <!-- 操作按钮：紧跟表单下方 -->
+            <HBox alignment="CENTER_RIGHT" spacing="12" maxWidth="Infinity"
+                  styleClass="form-actions">
+                <Button mnemonicParsing="false" onAction="#onTestconnection"
+                        styleClass="ghost-button" text="测试连接">
+                    <cursor>
+                        <Cursor fx:constant="HAND"/>
+                    </cursor>
+                </Button>
+                <Button fx:id="loginButton" mnemonicParsing="false" onAction="#onComboBoxChanged"
+                        styleClass="primary-button" text="保存并打开">
+                    <cursor>
+                        <Cursor fx:constant="HAND"/>
+                    </cursor>
+                </Button>
+            </HBox>
+        </children>
+    </VBox>
+</HBox>

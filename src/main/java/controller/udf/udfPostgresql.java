@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class udfPostgresql {
 
+    private static final Logger LOG = Logger.getLogger(udfPostgresql.class.getName());
     private static final int CHUNK_SIZE = 2048;
 
     /**
@@ -131,18 +134,25 @@ public class udfPostgresql {
         try {
             resourcePath = getSingleFileResourcePath(resourceDir);
         } catch (Exception e) {
-            System.out.println("[!] 资源文件不存在: " + resourceDir + ", 已跳过此步骤");
+            LOG.log(Level.WARNING, "[!] UDF 资源目录不存在: " + resourceDir
+                    + "，跳过。若目标版本为 PG " + pgVersion
+                    + "，请从 https://github.com/sqlmapproject/udfhack 获取对应版本并放入该目录（文件名任意，取目录内首个文件）。");
+            return sqlList;
+        }
+        if (resourcePath == null) {
+            LOG.log(Level.WARNING, "[!] UDF 资源目录为空: " + resourceDir
+                    + "，跳过。请参考 src/main/resources/udf/postgresql/README.txt 补充对应版本资源。");
             return sqlList;
         }
 
         try (InputStream is = udfPostgresql.class.getResourceAsStream(resourcePath)) {
             if (is == null) {
-                System.out.println("[!] 资源文件不存在: " + resourcePath + ", 已跳过此步骤");
+                LOG.log(Level.WARNING, "[!] UDF 资源文件读取失败: " + resourcePath + "，跳过。");
                 return sqlList;
             }
             sqlList.addAll(convertFileToSQL(is, loid, writePath, fileSep));
         } catch (IOException e) {
-            System.out.println("[!] 文件读取失败: " + resourcePath + ", 已跳过此步骤");
+            LOG.log(Level.WARNING, "[!] UDF 文件读取失败: " + resourcePath + "，跳过。");
         }
 
         return sqlList;

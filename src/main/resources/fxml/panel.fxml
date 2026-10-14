@@ -13,38 +13,65 @@
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<AnchorPane fx:id="rootPane" prefHeight="600.0" prefWidth="900.0" stylesheets="@/style/panel.css"
+<AnchorPane fx:id="rootPane" prefHeight="640.0" prefWidth="980.0" stylesheets="@/style/panel.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.panel">
     <children>
-        <!-- 左右分割面板 -->
-        <SplitPane dividerPositions="0.25" layoutX="0.0" layoutY="0.0" prefHeight="600.0" prefWidth="900.0">
-            <items>
-                <!-- 左侧数据库列表 -->
-                <VBox prefWidth="200.0">
-                    <children>
-                        <TreeView fx:id="treeView" prefHeight="606.0" prefWidth="222.0"
-                                  style="-fx-background-color: #e2dbb4;-fx-control-inner-background: #e2dbb4;-fx-control-inner-background-alt: #e2dbb4;"/>
-                    </children>
-                </VBox>
+        <!-- 整体：顶栏 + 主体 -->
+        <VBox styleClass="app-root" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <!-- 顶部工具条 -->
+                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="app-header">
+                    <ImageView fitHeight="30.0" fitWidth="30.0" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@/images/ico.png"/>
+                        </image>
+                    </ImageView>
+                    <VBox alignment="CENTER_LEFT" spacing="1">
+                        <Label styleClass="app-brand" text="TURACOS"/>
+                        <Label styleClass="app-subtitle" text="数据库安全评估工具"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="complianceHintLabel" styleClass="app-hint" text=""/>
+                    <Button onAction="#runComplianceCheck" styleClass="psql-button" text="合规基线检查"/>
+                    <Button fx:id="themeButton" mnemonicParsing="false" onAction="#onToggleTheme"
+                            styleClass="theme-toggle" text="深色">
+                        <cursor>
+                            <Cursor fx:constant="HAND"/>
+                        </cursor>
+                    </Button>
+                </HBox>
 
+                <!-- 主体分割 -->
+                <SplitPane dividerPositions="0.22" styleClass="main-split" VBox.vgrow="ALWAYS">
+                    <items>
+                        <!-- 左侧数据库列表 -->
+                        <VBox prefWidth="200.0" styleClass="side-panel">
+                            <children>
+                                <TreeView fx:id="treeView" prefHeight="560.0" prefWidth="210.0"
+                                          styleClass="db-tree"/>
+                            </children>
+                        </VBox>
                 <!-- 右侧主工作区 -->
                 <VBox>
 
                     <!-- 标签化功能区 + 日志输出 -->
-                    <SplitPane dividerPositions="0.7" orientation="VERTICAL"
-                               style="-fx-background-color: #cde5ea; -fx-control-inner-background: #cde5ea; -fx-control-inner-background-alt: #cde5ea; -fx-border-color: #cde5ea;">
+                    <SplitPane dividerPositions="0.7" orientation="VERTICAL" styleClass="main-split">
                         <items>
                             <!-- 上半部分：TabPane 功能区 -->
-                            <TabPane fx:id="rightTabPane">
+                            <TabPane fx:id="rightTabPane" tabClosingPolicy="UNAVAILABLE">
 
                                 <!-- 第一个 Tab：数据库表内容 -->
                                 <Tab text="数据库表">
                                     <VBox spacing="5.0" style="-fx-padding:5;">
-                                        <TableView fx:id="tableView" prefHeight="400.0"/>
+                                        <TableView fx:id="tableView" prefHeight="400.0"
+                                                   maxWidth="Infinity" maxHeight="Infinity"
+                                                   VBox.vgrow="ALWAYS"/>
                                     </VBox>
                                 </Tab>
 
@@ -52,10 +79,12 @@
                                 <!-- 第二个 Tab：执行 SQL -->
                                 <Tab text="执行 SQL">
                                     <VBox spacing="5.0" style="-fx-padding:5;">
-                                        <TextArea fx:id="sqlTextArea" prefHeight="351.0" prefWidth="661.0"
-                                                  styleClass="sql-text-area" wrapText="true"/>
-                                        <Button onAction="#btnExecuteSql" prefHeight="23.0" prefWidth="663.0"
-                                                text="执行 SQL"/>
+                                        <TextArea fx:id="sqlTextArea" prefHeight="351.0"
+                                                  maxWidth="Infinity" maxHeight="Infinity"
+                                                  styleClass="sql-text-area" wrapText="true"
+                                                  VBox.vgrow="ALWAYS"/>
+                                        <Button onAction="#btnExecuteSql" maxWidth="Infinity"
+                                                prefHeight="23.0" text="执行 SQL"/>
                                     </VBox>
                                 </Tab>
 
@@ -287,6 +316,8 @@
                                                                        promptText="whoami" styleClass="psql-textfield"/>
                                                             <Button onAction="#executeCmdButton"
                                                                     styleClass="psql-button" text="执行"/>
+                                                            <Button onAction="#loadRedisModuleButton"
+                                                                    styleClass="psql-button" text="加载模块"/>
                                                         </HBox>
                                                     </VBox>
 
@@ -457,5 +488,7 @@
                 </VBox>
             </items>
         </SplitPane>
+            </children>
+        </VBox>
     </children>
 </AnchorPane>
